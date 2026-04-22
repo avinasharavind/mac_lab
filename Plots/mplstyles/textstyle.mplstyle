@@ -1,0 +1,8 @@
+font.family : Avenir Next
+font.weight : bold
+text.color : "#dce5f0"
+axes.labelcolor : "#dce5f0"
+xtick.color : "#dce5f0"
+ytick.color : "#dce5f0"
+xtick.labelsize : 14
+figure.facecolor: "#1b2433"

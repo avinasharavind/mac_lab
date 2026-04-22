@@ -1,0 +1,12 @@
+flask
+pyyaml
+apscheduler
+requests
+boto3
+urllib
+tempfile
+gzip
+matplotlib
+numpy
+xarray
+herbie

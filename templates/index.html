@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Display</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <!-- Top bar: location name + current time -->
+    <header id="topbar">
+        <span id="sub-name"></span>
+        <span id="location-name"><!-- filled by JS --></span>
+        <span id="clock"></span>
+    </header>
+
+    <!-- Main layout: two columns -->
+    <main id="dashboard">
+
+        <!-- LEFT COLUMN: static panels -->
+        <aside id="static-panels">
+
+            <!-- Current conditions -->
+            <section class="panel" id="obs-panel">
+                <h2>Current Conditions</h2>
+                <div id="obs-content">
+                    <div class="obs-row">
+                        <span class="obs-label">Station</span>
+                        <span class="obs-value" id="obs-station">--</span>
+                    </div>
+                    <div class="obs-row">
+                        <span class="obs-label">Time</span>
+                        <span class="obs-value" id="obs-time">--</span>
+                    </div>
+                    <div class="obs-row">
+                        <span class="obs-label">Temperature</span>
+                        <span class="obs-value" id="obs-temp">--</span>
+                    </div>
+                    <div class="obs-row">
+                        <span class="obs-label">Dewpoint</span>
+                        <span class="obs-value" id="obs-dewpoint">--</span>
+                    </div>
+                    <div class="obs-row">
+                        <span class="obs-label">Wind</span>
+                        <span class="obs-value" id="obs-wind">--</span>
+                    </div>
+                    <div class="obs-row">
+                        <span class="obs-label">Visibility</span>
+                        <span class="obs-value" id="obs-vis">--</span>
+                    </div>
+                    <div class="obs-row">
+                        <span class="obs-label">Pressure</span>
+                        <span class="obs-value" id="obs-altimeter">--</span>
+                    </div>
+                    <div class="obs-row">
+                        <span class="obs-label">Weather</span>
+                        <span class="obs-value" id="obs-sky">--</span>
+                    </div>
+                    <div id="obs-metar">--</div>
+                </div>
+            </section>
+
+            <!-- 12-hour forecast -->
+            <section class="panel" id="forecast-short-panel">
+                <h2>Next 12 Hours</h2>
+                <div id="forecast-short-content">
+                    <!-- Rows inserted by JS -->
+                </div>
+            </section>
+
+        </aside>
+
+        <!-- RIGHT AREA: cycling panels -->
+        <section id="cycling-area">
+
+            <!-- Panel title + cycle indicator -->
+            <div id="cycle-header">
+                <span id="cycle-title">--</span>
+                <div id="cycle-dots">
+                    <!-- Dots inserted by JS -->
+                </div>
+                <span id="cycle-status">▶</span>
+            </div>
+
+            <!-- The cycling content itself -->
+            <div id="cycle-content">
+
+                <!-- GOES Visible / GeoColor -->
+                <div class="cycle-panel" id="panel-satellite-vis">
+                    <div class="loop-container">
+                        <img class="loop-frame" id="satellite-vis-img" src="" alt="GOES Visible">
+                    </div>
+                </div>
+
+                <!-- GOES IR -->
+                <div class="cycle-panel" id="panel-satellite-ir">
+                    <div class="loop-container">
+                        <img class="loop-frame" id="satellite-ir-img" src="" alt="GOES IR">
+                    </div>
+                </div>
+
+                <!-- WPC Surface Analysis -->
+                <div class="cycle-panel" id="panel-surface-analysis">
+                    <img id="surface-analysis-img" src="/api/surface_analysis" alt="WPC Surface Analysis" width="90%" height="90%">
+                </div>
+
+                <!-- 5-day forecast -->
+                <div class="cycle-panel" id="panel-forecast-daily">
+                    <div id="forecast-daily-content">
+                        <!-- Inserted by JS -->
+                    </div>
+                </div>
+
+                <div class="cycle-panel" id="panel-radar">
+                    <div class="loop-container">
+                        <img class="loop-frame" id="radar-img" src="" alt="MRMS Radar">
+                    </div>
+                </div>
+
+                <!-- Placeholder: model panels (added later) -->
+                <div class="cycle-panel" id="panel-model">
+                    <div class="placeholder">Model panels coming soon</div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="/static/main.js"></script>
+</body>
+</html>

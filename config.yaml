@@ -1,0 +1,21 @@
+location:
+  name: "Ithaca, NY"
+  lat: 42.4437
+  lon: -76.4849
+  nws_office: "BGM"
+  nws_gridX: 45
+  nws_gridY: 70
+
+asos:
+  station_id: "KITH"
+
+radar:
+  site: "KBGM"
+
+refresh_intervals_seconds:
+  observations: 1200
+  forecast: 1800
+  radar: 300
+  satellite: 300
+  surface_analysis: 3600
+
