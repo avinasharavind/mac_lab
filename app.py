@@ -46,7 +46,7 @@ CACHE_DIR = "cache"
 cache = {
     "observations": None,
     "forecast_short": None,
-    "surface_analysis_url": "https://www.wpc.ncep.noaa.gov/sfc/namussfc00wbg.gif",
+    "surface_analysis_url": "https://www.wpc.ncep.noaa.gov/NationalForecastChart/staticmaps/noaad1.png",
     "radar_frames": [], 
     "satellite_vis_frames": [],
     "satellite_ir_frames": [],
@@ -310,6 +310,7 @@ def surface_analysis():
     try:
         r = requests.get(cache["surface_analysis_url"], timeout=10)
         r.raise_for_status()
+        print("[wpc] Retrieved surface analysis")
         return Response(r.content, mimetype="image/gif")
     except Exception as e:
         return jsonify({"error": str(e)}), 500

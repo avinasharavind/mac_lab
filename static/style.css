@@ -26,7 +26,7 @@ body {
     background: var(--bg);
     color: var(--text-primary);
     font-family: var(--font);
-    font-size: 21px;
+    font-size: 24px;
     display: flex;
     flex-direction: column;
     height: 100vh;
@@ -48,20 +48,20 @@ body {
 
 #topbar #location-name {
     font-weight: 700;
-    font-size: 2rem;
+    font-size: 2.5rem;
     color: var(--text-header);
 }
 
 #topbar #sub-name {
     font-weight: 300;
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     color: var(--text-header);
     justify-self: left;
 }
 
 #topbar #clock {
     font-weight: 300;
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     color: var(--text-header);
     justify-self: end;
 }
@@ -92,7 +92,7 @@ body {
 }
 
 .panel h2 {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     font-weight: 600;
     text-transform: capitalize;
     letter-spacing: 0.05em;
@@ -106,7 +106,7 @@ body {
     justify-content: space-between;
     padding: 0.2rem 0;
     border-bottom: 0.5px solid var(--border);
-    font-size: 0.95rem;
+    font-size: 1.25rem;
 }
 
 .obs-row:last-child { border-bottom: none; }
@@ -135,20 +135,20 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 0.22rem 0;
-    font-size: 0.95rem;
+    font-size: 1.25rem;
     border-bottom: 0.5px solid var(--border);
     height: 2.75rem;
 }
 
 
-.forecast-time  { color: var(--text-secondary); width: 3.5rem; }
+.forecast-time  { color: var(--text-secondary); width: 4rem; }
 .forecast-desc {
     flex: 1;
     padding: 0 0.4rem;
     color: var(--text-secondary)
 }
 
-.forecast-temp  { font-weight: 500; width: 3.5rem; text-align: right; }
+.forecast-temp  { font-weight: 500; width: 4rem; text-align: right; padding-right: 0.5rem;}
 .forecast-pop   { color: var(--accent); width: 2.5rem; text-align: right; }
 
 /* --- Right cycling area --- */
@@ -170,7 +170,7 @@ body {
 }
 
 #cycle-title {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     font-weight: 600;
     text-transform: capitalize;
     letter-spacing: 0.05em;
@@ -255,14 +255,15 @@ body {
     display: grid;
     grid-template-columns: repeat(2, 1fr);  /* day | night columns */
     grid-auto-rows: 1fr;
-    gap: 0.5rem;
+    row-gap: 0.5rem;
+    column-gap: 0.5rem;
     width: 100%;
     height: 100%;
     padding: 0.5rem;
 }
 
 .daily-card {
-    background: var(--bg);
+    background: var(--bg-panel);
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 0.6rem 0.8rem;
@@ -272,14 +273,30 @@ body {
     gap: 0.2rem;
 }
 
+.daily-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.daily-left  { display: flex; 
+            flex-direction: column; 
+            flex: 1;
+            min-width: 0;
+            vertical-align: top;}
+.daily-right { text-align: right; 
+            vertical-align: bottom;}
+
 .night-period {
     background: var(--bg-panel);      /* slightly different shade to distinguish day/night */
 }
 
 .daily-name  { font-weight: 600; font-size: 1.5rem; }
-.daily-desc  { font-size: 1.25rem; color: var(--text-secondary); }
-.daily-temp  { font-size: 1.25rem; font-weight: 500; }
-.daily-pop   { font-size: 1rem; color: var(--accent); }
+.daily-desc  { font-size: 1.25rem; color: var(--text-secondary); max-width: 70%;}
+.daily-temp  { font-size: 2.5rem; font-weight: 500; text-align: right; }
+.daily-pop   { font-size: 1rem; color: var(--accent); text-align: right;}
+.daily-other   { font-size: 1rem; color: var(--text-secondary); text-align: right;}
 
 .placeholder {
     color: var(--text-secondary);

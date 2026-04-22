@@ -26,9 +26,9 @@ function cToF(c) {
     return (c * 9/5 + 32).toFixed(1) + "°F";
 }
 
-function kmhToKts(kmh) {
+function kmhTomph(kmh) {
     if (kmh === null || kmh === undefined) return null;
-    return Math.round(kmh / 1.852);
+    return Math.round(kmh / 1.609);
 }
 
 function mToMiles(m) {
@@ -50,10 +50,10 @@ function degreesToCardinal(deg) {
 
 function formatWind(dir_deg, spd_ms, gust_ms) {
     if (spd_ms === null || spd_ms === undefined) return "--";
-    const spd = kmhToKts(spd_ms);
+    const spd = kmhTomph(spd_ms);
     const dir = degreesToCardinal(dir_deg);
-    let str = `${dir} ${spd} kts`;
-    if (gust_ms) str += ` G ${kmhToKts(gust_ms)} kts`;
+    let str = `${dir} ${spd} mph`;
+    if (gust_ms) str += ` G ${kmhTomph(gust_ms)} mph`;
     return str;
 }
 
@@ -128,12 +128,20 @@ async function updateForecasts() {
         for (const period of periods) {
             const pop = period.probabilityOfPrecipitation?.value;
             const card = document.createElement("div");
+            const relhum = period.relativeHumidity?.value;
             card.className = `daily-card ${period.isDaytime ? "day-period" : "night-period"}`;
             card.innerHTML = `
-                <div class="daily-name">${period.name}</div>
-                <div class="daily-desc">${period.shortForecast}</div>
-                <div class="daily-temp">${period.temperature}°${period.temperatureUnit}</div>
-                <div class="daily-pop">Chance of Precip: ${pop}%</div>
+                <div class="daily-row">
+                    <div class="daily-left">
+                        <div class="daily-name">${period.name}</div>
+                        <div class="daily-desc">${period.shortForecast}</div>
+                    </div>
+                    <div class="daily-right">
+                        <div class="daily-temp">${period.temperature}°${period.temperatureUnit}</div>
+                        ${pop ? `<div class="daily-pop">Chance of Precip: ${pop}%</div>` : "0%"}
+                        <div class="daily-other">Wind: ${period.windDirection} @ ${period.windSpeed}</div>
+                    </div>
+                </div>
             `;
             dailyEl.appendChild(card);
         }
