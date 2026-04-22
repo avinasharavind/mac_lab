@@ -2,7 +2,9 @@
 #### Monitor Atmospheric Conditions with a Localized, Adaptable Background
 
 *Initialized 4.21.2026*
+
 *Created by Claude Sonnet 4.6 and Avinash Aravind*
+
 *Read the Project Design/Commentary: [Coming Soon]*
 
 The Snee Hall Computer Lab (formerly the "Mac Lab" before iMacs were replaced with Dell laptops running Linux) is one of the primary study and hangout spots for Cornell University Atmospheric Science students and friends of the major. Some classes are held here during the daytime, and students will often spend hours working on homeworks or studying for exams late into the night. Occasionally, when interesting weather is occuring, someone will pull up a radar website and display reflectivity scans on the mac lab projector. However, every time the group wanted to display different information, someone would have to manually bring up a separate webpage, and then zoom in to fit the screen.
