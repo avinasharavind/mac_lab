@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, Response
+from flask import Flask, jsonify, render_template, Response, send_file
 from apscheduler.schedulers.background import BackgroundScheduler
 import requests
 import yaml 
@@ -11,10 +11,22 @@ from datetime import datetime, timezone, timedelta, UTC
 from io import BytesIO
 import base64
 import re
+import urllib.parse
 from radar_helpers import plot_frame, register_radar
 import matplotlib
 matplotlib.use("agg")
 import matplotlib.pyplot as plt
+import subprocess
+import sys
+import time
+import xarray as xr
+
+import warnings
+warnings.filterwarnings("ignore")
+
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 register_radar()
 
@@ -125,10 +137,14 @@ def fetch_radar_frames(n_frames=10):
         )
 
         # Take the N most recent files
-        recent = objects[5*n_frames:]
+        if len(objects)<=5*n_frames:
+            i = len(objects)
+        else:
+            i = 5*n_frames
+        recent = objects[-i:]
 
         for obj in recent:
-            if obj["LastModified"].minute%10 == 0:
+            if obj["LastModified"].minute%10 <= 1:
                 # Use just the filename as the local name
                 fname = obj["Key"].split("/")[-1]
                 dest_path = os.path.join(radar_dir, fname)
@@ -160,9 +176,10 @@ def fetch_radar_frames(n_frames=10):
             try:
                 generate_radar_frames(gz_path, png_path)
                 print(f"[radar] Rendered: {png_path}")
-            except Exception as e:
-                print()
-                print(f"[radar] Failed to render {fname}: {e}")
+            except subprocess.TimeoutExpired:
+                    print(f"[radar] Render timed out: {fname}")
+            except subprocess.CalledProcessError as e:
+                    print(f"[radar] Render failed: {fname}: {e}")
 
     # Trim oldest PNGs beyond N
     all_pngs = sorted(glob.glob(os.path.join(png_dir, "*.png")))
@@ -174,7 +191,11 @@ def fetch_radar_frames(n_frames=10):
     print(f"[radar] Loop has {len(cache['radar_frames'])} frames")
 
 def generate_radar_frames(radar_frame, png_path):
-    plot_frame(radar_frame, png_path)
+    subprocess.run(
+        [sys.executable, "radar_helpers.py", radar_frame, png_path],
+        check=True,
+        timeout=120  # bail if a single frame takes more than 2 min
+    )
     plt.close("all")
 
 # Get GOES Satellite Data
@@ -241,6 +262,32 @@ def fetch_goes_frames(n_frames=15):
         except Exception as e:
             print(f"[goes-{label}] Failed: {e}")
 
+def model_frames_are_stale(model_dir, max_age_hours=6):
+    existing = glob.glob(os.path.join(model_dir, "*.png"))
+    if not existing:
+        return True
+    if len(existing)<18:
+        return True
+    newest = max(os.path.getmtime(f) for f in existing)
+    age_hours = (time.time() - newest) / 3600
+    return age_hours > max_age_hours
+
+def generate_hrrr_surface():
+    model_dir = os.path.join(CACHE_DIR, "hrrr_surface")
+    os.makedirs(model_dir, exist_ok=True)
+
+    if not model_frames_are_stale(model_dir):
+        print("[hrrr-surface] Frames are current, skipping render")
+        return
+
+    print("[hrrr-surface] Entering HRRR plotting scheme")
+    for i in range(18):
+        subprocess.run(
+            [sys.executable, "hrrr_model.py", f"{i}"],
+            check=True,
+        )
+        plt.close("all")
+
 
 # Flask routes
 @app.route("/")
@@ -283,6 +330,17 @@ def radar():
             frames.append(base64.b64encode(f.read()).decode("utf-8"))
     return jsonify({"frames": frames})
 
+@app.route("/api/hrrr_surface")
+def model():
+    frames = sorted(glob.glob(os.path.join(CACHE_DIR, "hrrr_surface", "*.png")))
+    urls = [f"/api/hrrr_surface/frame/{os.path.basename(f)}" for f in frames]
+    return jsonify({"urls": urls})
+
+@app.route("/api/hrrr_surface/frame/<path:filename>")
+def model_frame(filename):
+    path = os.path.join(CACHE_DIR, "hrrr_surface", filename)
+    return send_file(path, mimetype="image/png")
+
 # Schedule cache updates.
 scheduler = BackgroundScheduler()
 scheduler.add_job(
@@ -301,6 +359,9 @@ scheduler.add_job(fetch_goes_frames, "interval",
 scheduler.add_job(fetch_radar_frames, "interval",
     seconds=config["refresh_intervals_seconds"]["radar"])
 
+scheduler.add_job(generate_hrrr_surface, "interval",
+    seconds=config["refresh_intervals_seconds"]["model"])
+
 scheduler.start()
 
 # Run fetches once immediately on startup so cache isn't empty
@@ -308,6 +369,7 @@ fetch_observations()
 fetch_forecast()
 fetch_goes_frames()
 fetch_radar_frames()
+generate_hrrr_surface()
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5001)

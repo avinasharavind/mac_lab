@@ -13,7 +13,7 @@ const PANELS = [
     { id: "panel-surface-analysis", title: "WPC Surface Analysis" },
     { id: "panel-forecast-daily", title: "NWS 5-Day Forecast" },
     { id: "panel-radar",          title: "MRMS Reflectivity" },
-    { id: "panel-model",          title: "GFS Model Panels" },
+    { id: "panel-hrrr",          title: "HRRR Model Panels" },
 ];
 
 // ---------------------------------------------------------------
@@ -150,9 +150,10 @@ async function updateForecasts() {
 // ---------------------------------------------------------------
 
 const loopState = {
-    vis: { frames: [], idx: 0 },
-    ir:  { frames: [], idx: 0 },
-    radar: {frames: [], idx: 0}
+    vis: { frames: [], idx: 0, type: "base64"},
+    ir:  { frames: [], idx: 0, type: "base64" },
+    radar: {frames: [], idx: 0, type: "base64"},
+    model: { frames: [], idx: 0, type: "url" },
 };
 
 function animateLoop(stateKey, imgElementId) {
@@ -160,11 +161,14 @@ function animateLoop(stateKey, imgElementId) {
     if (state.frames.length === 0) return;
 
     const el = document.getElementById(imgElementId);
-    el.src = "data:image/jpeg;base64," + state.frames[state.idx];
+    const frame = state.frames[state.idx];
 
-    // Linger on last frame before looping
+    el.src = state.type === "base64"
+        ? "data:image/jpeg;base64," + frame
+        : frame;
+
     const isLast = state.idx === state.frames.length - 1;
-    const delay  = isLast ? 1200 : 100;
+    const delay  = isLast ? 1200 : 200;
 
     state.idx = isLast ? 0 : state.idx + 1;
     setTimeout(() => animateLoop(stateKey, imgElementId), delay);
@@ -206,6 +210,20 @@ async function updateRadar() {
         }
     } catch (e) {
         console.error("Failed to update radar:", e);
+    }
+}
+
+async function updateModel() {
+    try {
+        const bust = Date.now();
+        const resp = await fetch(`/api/hrrr_surface?t=${bust}`);
+        const data = await resp.json();
+        if (data.urls?.length) {
+            loopState.model.frames = data.urls.map(url => `${url}?t=${bust}`);
+            loopState.model.idx = 0;
+        }
+    } catch (e) {
+        console.error("Failed to update model:", e);
     }
 }
 
@@ -277,7 +295,7 @@ function togglePause() {
 document.addEventListener("DOMContentLoaded", async () => {
     // Set location name in header
     document.getElementById("location-name").textContent = LOCATION_NAME;
-    document.getElementById("sub-name").textContent = "Mac Lab / Snee Hall 2161A / Ithaca, NY"
+    document.getElementById("sub-name").textContent = "Welcome to the Mac Lab!"
 
     // Clock — update every second
     updateClock();
@@ -306,6 +324,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     await updateRadar();
         animateLoop("radar", "radar-img");
         setInterval(updateRadar, RADAR_REFRESH_MS);
+    await updateModel();
+        animateLoop("model", "hrrr-img");
+        setInterval(updateModel, 6 * 60 * 60 * 1000);  // every 6 hours
+        
     startLoops();             // start animation
 
     // Refresh data periodically

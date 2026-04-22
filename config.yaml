@@ -18,4 +18,5 @@ refresh_intervals_seconds:
   radar: 300
   satellite: 300
   surface_analysis: 3600
+  model: 10800
 

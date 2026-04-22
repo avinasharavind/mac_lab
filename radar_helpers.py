@@ -1,12 +1,17 @@
 import matplotlib as mpl
+import sys
+mpl.use("agg")
 import matplotlib.pyplot as plt
-import urllib
+import gc
 import shutil
 import gzip
 import xarray as xr
 from herbie.toolbox import EasyMap, pc
 import numpy as np
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+
+import warnings
+warnings.filterwarnings("ignore")
 
 def read_radar(data_file):
     try:
@@ -37,12 +42,12 @@ def make_plot():
 
     ax = EasyMap("10m", add_coastlines=True,
                  coastlines_kw={"color":"#1b2433"}, ax=ax)
-    ax = ax.LAND(facecolor="#5C636A", edgecolor="k", linewidth=1)
+    ax = ax.LAND(facecolor="#818A93", edgecolor="k", linewidth=1)
     ax = ax.BORDERS(color="#1b2433", linewidth=1, zorder=16)
     ax = ax.STATES(edgecolor="#1b2433", linewidth=1, zorder=15)
-    ax = ax.COUNTIES(edgecolor="#1b2433", linewidth=0.5, zorder=15)
-    ax = ax.LAKES(facecolor="#203251", linewidth=0.5, zorder=14)
-    ax = ax.OCEAN(facecolor="#203251", linewidth=0.5, zorder=14)
+    ax = ax.COUNTIES(edgecolor="#1b2433", linewidth=1, zorder=15)
+    ax = ax.LAKES(facecolor="#3E5C8F", linewidth=0.5, zorder=14)
+    ax = ax.OCEAN(facecolor="#3E5C8F", linewidth=0.5, zorder=14)
     ax = ax.ax
 
     ax.set_extent([lon1, lon2, lat1, lat2], crs=pc)
@@ -112,11 +117,23 @@ def plot_frame(radar_frame, png_path):
 
     fig.patch.set_facecolor("#f2f0eb")
 
-    ax.set_title(f"{data.time.values.astype(str)[0:11]} {data.time.values.astype(str)[11:16]}Z / Upstate NY", size=21)
+    ax.set_title(f"{data.time.values.astype(str)[0:10]} {data.time.values.astype(str)[11:16]}Z / Upstate NY", size=21)
 
     plt.savefig(f"{png_path}", dpi=150, bbox_inches="tight")
     plt.close("all")
     data.close()
     del data, fig, radar_frame
     ax.cla()
+
+if __name__ == "__main__":
+    grib_path = sys.argv[1]
+    png_path  = sys.argv[2]
+    try:
+        register_radar()
+        plot_frame(grib_path, png_path)
+    finally:
+        plt.close("all")
+        gc.collect()
+        sys.exit(0)  # explicit exit to ensure full cleanup
+
 

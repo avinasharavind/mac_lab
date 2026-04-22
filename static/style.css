@@ -34,10 +34,11 @@ body {
 
 /* --- Top bar --- */
 #topbar {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
     padding: 0.4rem 1.2rem;
+    width: 100%;
     background: var(--bg-header);
     border-bottom: 0.5px solid var(--border);
     font-size: 1rem;
@@ -55,12 +56,14 @@ body {
     font-weight: 300;
     font-size: 1.25rem;
     color: var(--text-header);
+    justify-self: left;
 }
 
 #topbar #clock {
     font-weight: 300;
     font-size: 1.25rem;
     color: var(--text-header);
+    justify-self: end;
 }
 
 
@@ -259,7 +262,7 @@ body {
 }
 
 .daily-card {
-    background: var(--bg-panel);
+    background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 0.6rem 0.8rem;
@@ -270,13 +273,13 @@ body {
 }
 
 .night-period {
-    background: var(--bg);      /* slightly different shade to distinguish day/night */
+    background: var(--bg-panel);      /* slightly different shade to distinguish day/night */
 }
 
-.daily-name  { font-weight: 600; font-size: 0.9rem; }
-.daily-desc  { font-size: 0.78rem; color: var(--text-secondary); }
-.daily-temp  { font-size: 1rem; font-weight: 500; }
-.daily-pop   { font-size: 0.8rem; color: var(--accent); }
+.daily-name  { font-weight: 600; font-size: 1.5rem; }
+.daily-desc  { font-size: 1.25rem; color: var(--text-secondary); }
+.daily-temp  { font-size: 1.25rem; font-weight: 500; }
+.daily-pop   { font-size: 1rem; color: var(--accent); }
 
 .placeholder {
     color: var(--text-secondary);
