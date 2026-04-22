@@ -8,12 +8,12 @@
 :root {
     --bg:          #f2f0eb;       /* warm off-white */
     --bg-panel:    #e8e5de;       /* slightly darker panel background */
-    --border:      #c8c4bc;       /* subtle borders */
+    --border:      #704242;       /* subtle borders */
     --text-primary:#2a2724;       /* near-black, warm tone */
     --text-secondary: #6b6560;    /* muted label text */
     --text-header: #f0e7e6;
     --bg-header: #832828;
-    --accent:      #5a7a6e;       /* muted sage green — tweak to taste */
+    --accent:      #148a5f;       /* muted sage green — tweak to taste */
     --font:        'Montserrat', sans-serif;
 }
 
@@ -26,7 +26,7 @@ body {
     background: var(--bg);
     color: var(--text-primary);
     font-family: var(--font);
-    font-size: 16px;
+    font-size: 21px;
     display: flex;
     flex-direction: column;
     height: 100vh;
@@ -39,25 +39,27 @@ body {
     align-items: center;
     padding: 0.4rem 1.2rem;
     background: var(--bg-header);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 0.5px solid var(--border);
     font-size: 1rem;
     color: var(--text-header);
     flex-shrink: 0;
 }
 
 #topbar #location-name {
-    font-weight: 500;
-    font-size: 1.5rem;
+    font-weight: 700;
+    font-size: 2rem;
     color: var(--text-header);
 }
 
 #topbar #sub-name {
     font-weight: 300;
+    font-size: 1.25rem;
     color: var(--text-header);
 }
 
 #topbar #clock {
     font-weight: 300;
+    font-size: 1.25rem;
     color: var(--text-header);
 }
 
@@ -65,7 +67,7 @@ body {
 /* --- Main layout --- */
 #dashboard {
     display: grid;
-    grid-template-columns: 350px 1fr;  /* fixed left column, flexible right */
+    grid-template-columns: 400px 1fr;  /* fixed left column, flexible right */
     gap: 0;
     flex: 1;
     overflow: hidden;
@@ -81,17 +83,18 @@ body {
 }
 
 .panel {
-    padding: 0.8rem 1rem;
+    padding: 0.4rem 1rem;
     border-bottom: 1px solid var(--border);
+
 }
 
 .panel h2 {
-    font-size: 0.75rem;
+    font-size: 1.25rem;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-secondary);
+    text-transform: capitalize;
+    letter-spacing: 0.05em;
     margin-bottom: 0.6rem;
+    color: var(--text-secondary)
 }
 
 /* Observations rows */
@@ -99,7 +102,7 @@ body {
     display: flex;
     justify-content: space-between;
     padding: 0.2rem 0;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 0.5px solid var(--border);
     font-size: 0.95rem;
 }
 
@@ -129,18 +132,20 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 0.22rem 0;
-    font-size: 0.88rem;
-    border-bottom: 1px solid var(--border);
-    height: 2.6rem;
+    font-size: 0.95rem;
+    border-bottom: 0.5px solid var(--border);
+    height: 2.75rem;
 }
+
 
 .forecast-time  { color: var(--text-secondary); width: 3.5rem; }
 .forecast-desc {
     flex: 1;
     padding: 0 0.4rem;
+    color: var(--text-secondary)
 }
 
-.forecast-temp  { font-weight: 500; width: 3rem; text-align: right; }
+.forecast-temp  { font-weight: 500; width: 3.5rem; text-align: right; }
 .forecast-pop   { color: var(--accent); width: 2.5rem; text-align: right; }
 
 /* --- Right cycling area --- */
@@ -162,10 +167,10 @@ body {
 }
 
 #cycle-title {
-    font-size: 0.85rem;
+    font-size: 1.25rem;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
+    text-transform: capitalize;
+    letter-spacing: 0.05em;
     color: var(--text-secondary);
 }
 

@@ -2,18 +2,18 @@
 // CONFIG (should match what Flask serves)
 // ---------------------------------------------------------------
 
-const LOCATION_NAME = "Welcome to the MAC LAB!";      // matches config.yaml
+const LOCATION_NAME = "Cornell Weather";      // matches config.yaml
 const CYCLE_INTERVAL_MS = 30000;            // ms between panel advances
 const RADAR_REFRESH_MS = 2 * 60 * 1000;   // 2 minutes, matching config.yaml
 
 // Panels in rotation order. id must match the HTML element id.
 const PANELS = [
-    { id: "panel-satellite-vis",  title: "GOES Visible / GeoColor" },
-    { id: "panel-satellite-ir",   title: "GOES Longwave IR" },
+    { id: "panel-satellite-vis",  title: "GOES GeoColor" },
+    { id: "panel-satellite-ir",   title: "GOES Band 13 Longwave IR" },
     { id: "panel-surface-analysis", title: "WPC Surface Analysis" },
-    { id: "panel-forecast-daily", title: "5-Day Forecast" },
-    { id: "panel-radar",          title: "Radar" },
-    { id: "panel-model",          title: "Model Panels" },
+    { id: "panel-forecast-daily", title: "NWS 5-Day Forecast" },
+    { id: "panel-radar",          title: "MRMS Reflectivity" },
+    { id: "panel-model",          title: "GFS Model Panels" },
 ];
 
 // ---------------------------------------------------------------
@@ -26,9 +26,9 @@ function cToF(c) {
     return (c * 9/5 + 32).toFixed(1) + "°F";
 }
 
-function kmhToKts(ms) {
-    if (ms === null || ms === undefined) return null;
-    return Math.round(ms / 1.852);
+function kmhToKts(kmh) {
+    if (kmh === null || kmh === undefined) return null;
+    return Math.round(kmh / 1.852);
 }
 
 function mToMiles(m) {
@@ -38,7 +38,7 @@ function mToMiles(m) {
 
 function paTohPa(pa) {
     if (pa === null || pa === undefined) return "--";
-    return (pa / 100).toFixed(2) + " hPa";
+    return (pa / 100).toFixed(1) + " hPa";
 }
 
 function degreesToCardinal(deg) {
@@ -53,7 +53,7 @@ function formatWind(dir_deg, spd_ms, gust_ms) {
     const spd = kmhToKts(spd_ms);
     const dir = degreesToCardinal(dir_deg);
     let str = `${dir} ${spd} kts`;
-    if (gust_ms) str += ` G${kmhToKts(gust_ms)}`;
+    if (gust_ms) str += ` G ${kmhToKts(gust_ms)} kts`;
     return str;
 }
 
@@ -82,7 +82,7 @@ async function updateObservations() {
         document.getElementById("obs-time").textContent      = `${obs.timestamp.slice(0, 10)} ${obs.timestamp.slice(11, 16)} Z`;
         document.getElementById("obs-temp").textContent      = cToF(obs.temp_c);
         document.getElementById("obs-dewpoint").textContent  = cToF(obs.dewpoint_c);
-        document.getElementById("obs-wind").textContent      = formatWind(obs.wind_dir, obs.wind_spd_ms, obs.wind_gust_ms);
+        document.getElementById("obs-wind").textContent      = formatWind(obs.wind_dir, obs.wind_spd_kmh, obs.wind_gust_kmh);
         document.getElementById("obs-vis").textContent       = mToMiles(obs.visibility_m);
         document.getElementById("obs-altimeter").textContent = paTohPa(obs.pressure_sl_pa);
         document.getElementById("obs-sky").textContent       = obs.sky_condition || "--";
@@ -133,7 +133,7 @@ async function updateForecasts() {
                 <div class="daily-name">${period.name}</div>
                 <div class="daily-desc">${period.shortForecast}</div>
                 <div class="daily-temp">${period.temperature}°${period.temperatureUnit}</div>
-                ${pop ? `<div class="daily-pop">${pop}% precip</div>` : ""}
+                <div class="daily-pop">Chance of Precip: ${pop}%</div>
             `;
             dailyEl.appendChild(card);
         }
@@ -277,7 +277,7 @@ function togglePause() {
 document.addEventListener("DOMContentLoaded", async () => {
     // Set location name in header
     document.getElementById("location-name").textContent = LOCATION_NAME;
-    document.getElementById("sub-name").textContent = "Snee Hall / 2161A / Ithaca, NY"
+    document.getElementById("sub-name").textContent = "Mac Lab / Snee Hall 2161A / Ithaca, NY"
 
     // Clock — update every second
     updateClock();

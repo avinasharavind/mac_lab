@@ -59,8 +59,8 @@ def fetch_observations():
             "dewpoint_c":       props.get("dewpoint", {}).get("value"),
             "humidity_pct":     props.get("relativeHumidity", {}).get("value"),
             "wind_dir":         props.get("windDirection", {}).get("value"),
-            "wind_spd_ms":      props.get("windSpeed", {}).get("value"),
-            "wind_gust_ms":     props.get("windGust", {}).get("value"),
+            "wind_spd_kmh":      props.get("windSpeed", {}).get("value"),
+            "wind_gust_kmh":     props.get("windGust", {}).get("value"),
             "visibility_m":     props.get("visibility", {}).get("value"),
             "pressure_sl_pa":   props.get("barometricPressure", {}).get("value"),
             "sky_condition":    props.get("textDescription"),
@@ -176,7 +176,6 @@ def fetch_radar_frames(n_frames=10):
 def generate_radar_frames(radar_frame, png_path):
     plot_frame(radar_frame, png_path)
     plt.close("all")
-
 
 # Get GOES Satellite Data
 def fetch_goes_frames(n_frames=15):

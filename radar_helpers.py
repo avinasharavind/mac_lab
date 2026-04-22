@@ -104,19 +104,19 @@ def plot_frame(radar_frame, png_path):
     cax=cax,
     orientation="horizontal",
     spacing="proportional",
-    ticks = np.arange(0, 70, 5), 
+    ticks = np.arange(0, 75, 5), 
     )
 
     cb.ax.tick_params(color="#2a2724")
-    cb.ax.set_xlabel("Reflectivity (dBZ)", color="#2a2724", size=18)
+    cb.ax.set_xlabel("Reflectivity (dBZ)", color="#2a2724", size=21)
 
     fig.patch.set_facecolor("#f2f0eb")
 
-    ax.set_title(f"MRMS Radar Reflectivity Mosaic / {data.time.values.astype(str)[0:11]} {data.time.values.astype(str)[11:16]}Z / Upstate NY", size=18)
+    ax.set_title(f"{data.time.values.astype(str)[0:11]} {data.time.values.astype(str)[11:16]}Z / Upstate NY", size=21)
 
     plt.savefig(f"{png_path}", dpi=150, bbox_inches="tight")
     plt.close("all")
     data.close()
-    del data
+    del data, fig, radar_frame
     ax.cla()
 
