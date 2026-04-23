@@ -21,11 +21,6 @@ import sys
 import time
 import xarray as xr
 
-import threading
-radar_lock  = threading.Lock()
-model_lock  = threading.Lock()
-
-import signal
 def run_render(script, args, timeout=120):
     """Run a render subprocess, kill it if it hangs."""
     try:
@@ -166,9 +161,6 @@ def fetch_radar_frames(n_frames=10):
     radar_dir = os.path.join(CACHE_DIR, "radar")
     os.makedirs(radar_dir, exist_ok=True)
 
-    if not radar_lock.acquire(blocking=False):
-        print("[radar] Render already in progress, skipping")
-        return
     try:
         response = s3.list_objects_v2(Bucket=bucket, Prefix=prefix)
         objects = sorted(
@@ -219,8 +211,6 @@ def fetch_radar_frames(n_frames=10):
                     print(f"[radar] Render timed out: {fname}")
             except subprocess.CalledProcessError as e:
                     print(f"[radar] Render failed: {fname}: {e}")
-            finally:
-                radar_lock.release()
 
     # Trim oldest PNGs beyond N
     all_pngs = sorted(glob.glob(os.path.join(png_dir, "*.png")))
@@ -314,10 +304,6 @@ def generate_hrrr_surface():
     model_dir = os.path.join(CACHE_DIR, "hrrr_surface")
     os.makedirs(model_dir, exist_ok=True)
 
-    if not model_lock.acquire(blocking=False):
-        print("[hrrr-surface] Render already in progress, skipping")
-        return
-
     try:
         if not model_frames_are_stale(model_dir):
             print("[hrrr-surface] Frames are current, skipping render")
@@ -335,13 +321,9 @@ def generate_hrrr_surface():
             else:
                 print(f"[hrrr-surface] Proceeding into frame {i}")
                 run_render("hrrr_model.py", [f"{i}"])
+    except:
+        print("[hrrr-surface] Something went wrong.")
 
-    finally:
-        model_lock.release()
-
-def run_in_background(fn):
-    t = threading.Thread(target=fn, daemon=True)
-    t.start()
 
 # Flask routes
 @app.route("/")
