@@ -87,7 +87,7 @@ def generate_hrrr(i, ds):
     now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M")
     data = ds.sel(init_time=now, lead_time=np.timedelta64(i, "h"), method="nearest")
     if os.path.exists(f"cache/hrrr_surface/{data.valid_time.values.astype(str)[0:10] + "T" + data.valid_time.values.astype(str)[11:16]}.png"):
-        return f"[hrrr-surface] Radar frame {i} exists already"
+        return f"[hrrr-surface] Radar frame {i} exists already. Somehow made it into the script."
     else:
         lat1, lon1, lat2, lon2 = (22.5,  -125,  52.5,  -66)
         width_in = 6 * (lon2 - lon1) / (lat2 - lat1)
@@ -189,7 +189,7 @@ def generate_hrrr(i, ds):
 
         fig.suptitle(f"HRRR Forecast / Valid {data.valid_time.values.astype(str)[0:10] + " " + data.valid_time.values.astype(str)[11:16]}Z", y=0.95, size=16)
 
-        plt.savefig(f"cache/hrrr_surface/{data.valid_time.values.astype(str)[0:10] + "T" + data.valid_time.values.astype(str)[11:16]}.png", bbox_inches="tight")
+        plt.savefig(f"cache/hrrr_surface/frame{i}.png", bbox_inches="tight")
         del data, fig
         return f"[hrrr-surface] Created frame {i}"
 

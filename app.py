@@ -21,6 +21,27 @@ import sys
 import time
 import xarray as xr
 
+import threading
+radar_lock  = threading.Lock()
+model_lock  = threading.Lock()
+
+import signal
+def run_render(script, args, timeout=120):
+    """Run a render subprocess, kill it if it hangs."""
+    try:
+        proc = subprocess.Popen(
+            [sys.executable, script] + args,
+        )
+        proc.wait(timeout=timeout)
+        if proc.returncode != 0:
+            print(f"[render] {script} exited with code {proc.returncode}")
+    except subprocess.TimeoutExpired:
+        print(f"[render] {script} timed out, killing")
+        proc.kill()
+        proc.wait()  # ensure it's fully cleaned up after kill
+    except Exception as e:
+        print(f"[render] {script} failed: {e}")
+
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -29,6 +50,7 @@ log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
 register_radar()
+
 
 '''
 Gets data from various NWS sources to display.
@@ -57,6 +79,14 @@ spc_urls = {
     "tornado":     "https://www.spc.noaa.gov/products/outlook/day1probotlk_0100_torn.png",
     "hail":        "https://www.spc.noaa.gov/products/outlook/day1probotlk_0100_hail.png",
     "wind":        "https://www.spc.noaa.gov/products/outlook/day1probotlk_0100_wind.png",
+}
+
+noaa_urls = {
+    "rainfall":         "https://www.wpc.ncep.noaa.gov/qpf/94ewbg.gif",
+    "24h_qpf":              "https://www.wpc.ncep.noaa.gov/qpf/fill_94qwbg.gif",
+    "hazards_3_7":      "https://www.wpc.ncep.noaa.gov/threats/final/hazards_d3_7_contours.png",
+    "nws_homepage":     "https://www.weather.gov/wwamap/png/US.png",
+    "drought":          "https://droughtmonitor.unl.edu/data/png/current/current_usdm.png",
 }
 
 # Get observations from ASOS station
@@ -136,6 +166,9 @@ def fetch_radar_frames(n_frames=10):
     radar_dir = os.path.join(CACHE_DIR, "radar")
     os.makedirs(radar_dir, exist_ok=True)
 
+    if not radar_lock.acquire(blocking=False):
+        print("[radar] Render already in progress, skipping")
+        return
     try:
         response = s3.list_objects_v2(Bucket=bucket, Prefix=prefix)
         objects = sorted(
@@ -161,8 +194,6 @@ def fetch_radar_frames(n_frames=10):
                     with open(dest_path, "wb") as f:
                         f.write(data["Body"].read())
                     print(f"[radar] Downloaded: {fname}")
-                else:
-                    print(f"[radar] Already cached: {fname}")
 
         # Trim oldest files beyond N
         all_files = sorted(glob.glob(os.path.join(radar_dir, "*.gz")))
@@ -171,6 +202,7 @@ def fetch_radar_frames(n_frames=10):
 
     except Exception as e:
         print(f"[radar] Failed: {e}")
+    
 
     png_dir = os.path.join(CACHE_DIR, "radar_frames")
     os.makedirs(png_dir, exist_ok=True)
@@ -187,6 +219,8 @@ def fetch_radar_frames(n_frames=10):
                     print(f"[radar] Render timed out: {fname}")
             except subprocess.CalledProcessError as e:
                     print(f"[radar] Render failed: {fname}: {e}")
+            finally:
+                radar_lock.release()
 
     # Trim oldest PNGs beyond N
     all_pngs = sorted(glob.glob(os.path.join(png_dir, "*.png")))
@@ -198,12 +232,7 @@ def fetch_radar_frames(n_frames=10):
     print(f"[radar] Loop has {len(cache['radar_frames'])} frames")
 
 def generate_radar_frames(radar_frame, png_path):
-    subprocess.run(
-        [sys.executable, "radar_helpers.py", radar_frame, png_path],
-        check=True,
-        timeout=120  # bail if a single frame takes more than 2 min
-    )
-    plt.close("all")
+    run_render("radar_helpers.py", [radar_frame, png_path])
 
 # Get GOES Satellite Data
 def fetch_goes_frames(n_frames=15):
@@ -252,8 +281,6 @@ def fetch_goes_frames(n_frames=15):
                     with open(dest_path, "wb") as f:
                         f.write(img_r.content)
                     print(f"[goes-{label}] Saved new frame: {fname}")
-                else:
-                    print(f"[goes-{label}] Already cached: {fname}")
 
             # Trim any frames older than the current N we want
             all_frames = sorted(glob.glob(os.path.join(product_dir, "*.jpg")))
@@ -287,18 +314,34 @@ def generate_hrrr_surface():
     model_dir = os.path.join(CACHE_DIR, "hrrr_surface")
     os.makedirs(model_dir, exist_ok=True)
 
-    if not model_frames_are_stale(model_dir):
-        print("[hrrr-surface] Frames are current, skipping render")
+    if not model_lock.acquire(blocking=False):
+        print("[hrrr-surface] Render already in progress, skipping")
         return
 
-    print("[hrrr-surface] Entering HRRR plotting scheme")
-    for i in range(18):
-        subprocess.run(
-            [sys.executable, "hrrr_model.py", f"{i}"],
-            check=True,
-            timeout=180
-        )
-        plt.close("all")
+    try:
+        if not model_frames_are_stale(model_dir):
+            print("[hrrr-surface] Frames are current, skipping render")
+            return
+
+        # Clear old frames before rendering new ones
+        for f in glob.glob(os.path.join(model_dir, "*.png")):
+            os.remove(f)
+
+        print("[hrrr-surface] Entering HRRR plotting scheme")
+        for i in range(12):
+            if os.path.exists(f"frame{i}.png"):
+                print(f"[hrrr-surface] Frame {i} already exists, skipping")
+                continue
+            else:
+                print(f"[hrrr-surface] Proceeding into frame {i}")
+                run_render("hrrr_model.py", [f"{i}"])
+
+    finally:
+        model_lock.release()
+
+def run_in_background(fn):
+    t = threading.Thread(target=fn, daemon=True)
+    t.start()
 
 # Flask routes
 @app.route("/")
@@ -323,6 +366,28 @@ def surface_analysis():
         r.raise_for_status()
         print("[wpc] Retrieved surface analysis")
         return Response(r.content, mimetype="image/gif")
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/api/noaa/<product>")
+def noaa(product):
+    if product not in noaa_urls:
+        return jsonify({"error": "unknown product"}), 404
+    try:
+        r = requests.get(noaa_urls[product], timeout=10)
+        r.raise_for_status()
+        return Response(r.content, mimetype="image/png")
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/api/spc/<product>")
+def spc(product):
+    if product not in spc_urls:
+        return jsonify({"error": "unknown product"}), 404
+    try:
+        r = requests.get(spc_urls[product], timeout=10)
+        r.raise_for_status()
+        return Response(r.content, mimetype="image/png")
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
@@ -369,16 +434,6 @@ def model_frame(filename):
     path = os.path.join(CACHE_DIR, "hrrr_surface", filename)
     return send_file(path, mimetype="image/png")
 
-@app.route("/api/spc/<product>")
-def spc(product):
-    if product not in spc_urls:
-        return jsonify({"error": "unknown product"}), 404
-    try:
-        r = requests.get(spc_urls[product], timeout=10)
-        r.raise_for_status()
-        return Response(r.content, mimetype="image/png")
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 # Schedule cache updates.
 scheduler = BackgroundScheduler()

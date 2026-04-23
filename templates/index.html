@@ -102,7 +102,11 @@
 
                 <!-- WPC Surface Analysis -->
                 <div class="cycle-panel" id="panel-surface-analysis">
-                    <img id="surface-analysis-img" src="/api/surface_analysis" alt="WPC Surface Analysis" width="90%" height="90%">
+                    <img id="surface-analysis-img" src="/api/surface_analysis" alt="WPC Prognosis Chart" width="90%" height="90%">
+                </div>
+
+                <div class="cycle-panel" id="panel-nws-alerts">
+                    <img id="nws-alerts-img" src="/api/noaa/nws_homepage" alt="NWS Alerts" width="100%" height="100%">
                 </div>
 
                 <!-- 5-day forecast -->
@@ -115,12 +119,14 @@
                 <div class="cycle-panel" id="panel-radar">
                     <div class="loop-container">
                         <img class="loop-frame" id="radar-img" src="" alt="MRMS Radar">
+                        <div class="loading-msg" id="radar-loading">Loading radar frames...</div>
                     </div>
                 </div>
 
                 <div class="cycle-panel" id="panel-hrrr">
                     <div class="loop-container">
                         <img class="loop-frame" id="hrrr-img" src="" alt="HRRR Surface" width="100%">
+                        <div class="loading-msg" id="model-loading">Loading model panels...</div>
                     </div>
                 </div>
 
@@ -155,6 +161,23 @@
                             <img class="loop-frame" id="ne-sat-band9-img" src="" alt="NE Band 9">
                         </div>
                      </div>
+                </div>
+
+                <div class="cycle-panel" id="panel-noaa">
+                    <div id="noaa-grid">
+                        <div class="noaa-cell">
+                            <img class="noaa-fcst" src="/api/noaa/24h_qpf" alt="WPC 1-day QPF">
+                        </div>
+                        <div class="noaa-cell">
+                            <img class="noaa-fcst" src="/api/noaa/rainfall" alt="Excessive Rainfall Outlook">
+                        </div>
+                        <div class="noaa-cell">
+                            <img class="noaa-fcst" src="/api/noaa/hazards_3_7" alt="3-7 Day Hazard Map">
+                        </div>
+                        <div class="noaa-cell">
+                            <img class="noaa-fcst" src="/api/noaa/drought" alt="Drought Monitor">
+                        </div>
+                    </div>
                 </div>
 
             </div>

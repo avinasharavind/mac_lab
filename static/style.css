@@ -305,7 +305,7 @@ body {
 
 #spc-container {
     display: grid;
-    grid-template-columns: 1fr 500px;  /* main image | sidebar, adjust width to taste */
+    grid-template-columns: 1fr 450px;  /* main image | sidebar, adjust width to taste */
     gap: 0.5rem;
     width: 100%;
     height: 100%;
@@ -370,4 +370,30 @@ body {
     width: 100%;
     height: 100%;
     object-fit: contain;
+}
+
+#noaa-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 0.1rem;
+    width: 100%;
+    height: 100%;
+    align-items: start;
+}
+
+.noaa-fcst {
+    overflow: hidden;
+    min-height: 0;
+    align-self: start;
+}
+
+.loading-msg {
+    position: absolute;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.loop-container {
+    position: relative;  /* add this to existing rule */
 }

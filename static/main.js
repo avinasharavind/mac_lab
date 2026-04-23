@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------
 
 const LOCATION_NAME = "Cornell Weather";      // matches config.yaml
-const CYCLE_INTERVAL_MS = 30000;            // ms between panel advances
+const CYCLE_INTERVAL_MS = 20000;            // ms between panel advances
 const RADAR_REFRESH_MS = 2 * 60 * 1000;   // 2 minutes, matching config.yaml
 
 // Panels in rotation order. id must match the HTML element id.
@@ -11,7 +11,9 @@ const PANELS = [
     { id: "panel-satellite-vis",  title: "GOES GeoColor" },
     { id: "panel-satellite-ir",   title: "GOES Band 13 Longwave IR" },
     { id: "panel-surface-analysis", title: "WPC Surface Analysis" },
+    { id: "panel-nws-alerts",       title: "NWS Alerts Map" },
     { id: "panel-spc",             title: "SPC Severe Weather Outlook" },
+    { id: "panel-noaa",             title: "Assorted NOAA Outlooks/Monitors" },
     { id: "panel-forecast-daily", title: "NWS 5-Day Forecast" },
     { id: "panel-ne-sat-1", title: "GOES Northeast Sector: GeoColor & Longwave IR" },
     { id: "panel-ne-sat-2", title: "GOES Northeast Sector: Cloud Micro & Water Vapor" },
@@ -173,7 +175,17 @@ const loopState = {
 
 function animateLoop(stateKey, imgElementId) {
     const state = loopState[stateKey];
-    if (state.frames.length === 0) return;
+    if (state.frames.length === 0) {
+        // No frames yet — check again in 10 seconds
+        setTimeout(() => animateLoop(stateKey, imgElementId), 10000);
+        return;
+    }
+
+    // Hide loading message if present
+    const loadingEl = document.getElementById(
+        imgElementId.replace("-img", "-loading")
+    );
+    if (loadingEl) loadingEl.style.display = "none";
 
     const el = document.getElementById(imgElementId);
     const frame = state.frames[state.idx];
