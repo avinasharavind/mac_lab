@@ -203,13 +203,24 @@ function animateLoop(stateKey, imgElementId) {
     if (loadingEl) loadingEl.style.display = "none";
 
     const el = document.getElementById(imgElementId);
-    const img = state.images[state.idx];
-    const isLast = state.idx === state.frames.length - 1;
-    const delay = isLast ? 1200 : 200;
+    let lastTime = null;
+    let currentDelay = 200;
 
-    el.src = img.src;
-    state.idx = isLast ? 0 : state.idx + 1;
-    setTimeout(() => animateLoop(stateKey, imgElementId), delay);
+    function step(timestamp) {
+        if (!lastTime) lastTime = timestamp;
+        const state = loopState[stateKey];
+
+        if (timestamp - lastTime >= currentDelay) {
+            const isLast = state.idx === state.frames.length - 1;
+            el.src = state.images[state.idx].src;
+            state.idx = isLast ? 0 : state.idx + 1;
+            currentDelay = isLast ? 1200 : 200;  // set delay AFTER displaying
+            lastTime = timestamp;
+        }
+        requestAnimationFrame(step);
+    }
+
+    requestAnimationFrame(step);
 }
 
 async function updateSatellite() {

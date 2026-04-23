@@ -229,7 +229,7 @@ def generate_radar_frames(radar_frame, png_path):
     run_render("radar_helpers.py", [radar_frame, png_path])
 
 # Get GOES Satellite Data
-def fetch_goes_frames(n_frames=15):
+def fetch_goes_frames(n_frames=24):
     """
     Fetch recent GOES-16 CONUS ABI imagery from AWS.
     We use the pre-rendered GeoColor (Band 13 proxy) imagery from a NOAA image server
