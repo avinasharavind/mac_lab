@@ -74,6 +74,10 @@ spc_urls = {
     "tornado":     "https://www.spc.noaa.gov/products/outlook/day1probotlk_torn.png",
     "hail":        "https://www.spc.noaa.gov/products/outlook/day1probotlk_hail.png",
     "wind":        "https://www.spc.noaa.gov/products/outlook/day1probotlk_wind.png",
+    "day2":        "https://www.spc.noaa.gov/products/outlook/day2otlk.png",
+    "day3":        "https://www.spc.noaa.gov/products/outlook/day3otlk.png",
+    "day4":        "https://www.spc.noaa.gov/products/exper/day4-8/day4prob.gif",
+    "day5":        "https://www.spc.noaa.gov/products/exper/day4-8/day5prob.gif",
 }
 
 noaa_urls = {
@@ -176,7 +180,7 @@ def fetch_radar_frames(n_frames=10):
         recent = objects[-i:]
 
         for obj in recent:
-            if obj["LastModified"].minute%10 <= 1:
+            if obj["LastModified"].minute%10 == 0:
                 # Use just the filename as the local name
                 fname = obj["Key"].split("/")[-1]
                 dest_path = os.path.join(radar_dir, fname)

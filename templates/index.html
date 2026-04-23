@@ -119,14 +119,12 @@
                 <div class="cycle-panel" id="panel-radar">
                     <div class="loop-container">
                         <img class="loop-frame" id="radar-img" src="" alt="MRMS Radar">
-                        <div class="loading-msg" id="radar-loading">Loading radar frames...</div>
                     </div>
                 </div>
 
                 <div class="cycle-panel" id="panel-hrrr">
                     <div class="loop-container">
                         <img class="loop-frame" id="hrrr-img" src="" alt="HRRR Surface" width="100%">
-                        <div class="loading-msg" id="model-loading">Loading model panels...</div>
                     </div>
                 </div>
 
@@ -137,6 +135,23 @@
                             <img class="spc-prob" src="/api/spc/tornado" alt="Tornado">
                             <img class="spc-prob" src="/api/spc/hail"    alt="Hail">
                             <img class="spc-prob" src="/api/spc/wind"    alt="Wind">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cycle-panel" id="panel-spc-outlooks">
+                    <div id="spc-forecast-grid">
+                        <div class="noaa-cell">
+                            <img class="noaa-fcst" src="/api/spc/day2" alt="SPC Day 2">
+                        </div>
+                        <div class="noaa-cell">
+                            <img class="noaa-fcst" src="/api/spc/day3" alt="SPC Day 3">
+                        </div>
+                        <div class="noaa-cell">
+                            <img class="noaa-fcst" src="/api/spc/day4" alt="SPC Day 4">
+                        </div>
+                        <div class="noaa-cell">
+                            <img class="noaa-fcst" src="/api/spc/day5" alt="SPC Day 5">
                         </div>
                     </div>
                 </div>

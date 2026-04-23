@@ -13,6 +13,7 @@ const PANELS = [
     { id: "panel-surface-analysis", title: "WPC Surface Analysis" },
     { id: "panel-nws-alerts",       title: "NWS Alerts Map" },
     { id: "panel-spc",             title: "SPC Severe Weather Outlook" },
+    { id: "panel-spc-outlooks",     title: "SPC Day 2-5 Outlooks"},
     { id: "panel-noaa",             title: "Assorted NOAA Outlooks/Monitors" },
     { id: "panel-forecast-daily", title: "NWS 5-Day Forecast" },
     { id: "panel-ne-sat-1", title: "Northeast: GeoColor/Longwave IR" },
@@ -163,40 +164,50 @@ async function updateForecasts() {
 // ---------------------------------------------------------------
 
 const loopState = {
-    vis: { frames: [], idx: 0, type: "base64"},
-    ir:  { frames: [], idx: 0, type: "base64" },
-    radar: {frames: [], idx: 0, type: "base64"},
-    model: { frames: [], idx: 0, type: "url" },
-    ne_vis: { frames: [], idx: 0, type: "base64"},
-    ne_ir: { frames: [], idx: 0, type: "base64"},
-    ne_cloud: { frames: [], idx: 0, type: "base64"},
-    ne_band9: { frames: [], idx: 0, type: "base64"},
+    vis: { frames: [], images: [], idx: 0, type: "base64"},
+    ir:  { frames: [], images: [], idx: 0, type: "base64" },
+    radar: {frames: [], images: [], idx: 0, type: "base64"},
+    model: { frames: [], images: [], idx: 0, type: "url" },
+    ne_vis: { frames: [], images: [], idx: 0, type: "base64"},
+    ne_ir: { frames: [], images: [], idx: 0, type: "base64"},
+    ne_cloud: { frames: [], images: [], idx: 0, type: "base64"},
+    ne_band9: { frames: [], images: [], idx: 0, type: "base64"},
 };
+
+function preloadFrames(state) {
+    return new Promise(resolve => {
+        if (state.frames.length === 0) { resolve(); return; }
+        let loaded = 0;
+        state.images = state.frames.map(frame => {
+            const img = new Image();
+            img.onload = () => { if (++loaded === state.frames.length) resolve(); };
+            img.onerror = () => { if (++loaded === state.frames.length) resolve(); };
+            img.src = state.type === "base64"
+                ? "data:image/jpeg;base64," + frame
+                : frame;
+            return img;
+        });
+    });
+}
 
 function animateLoop(stateKey, imgElementId) {
     const state = loopState[stateKey];
     if (state.frames.length === 0) {
-        // No frames yet — check again in 10 seconds
         setTimeout(() => animateLoop(stateKey, imgElementId), 10000);
         return;
     }
 
-    // Hide loading message if present
     const loadingEl = document.getElementById(
         imgElementId.replace("-img", "-loading")
     );
     if (loadingEl) loadingEl.style.display = "none";
 
     const el = document.getElementById(imgElementId);
-    const frame = state.frames[state.idx];
-
-    el.src = state.type === "base64"
-        ? "data:image/jpeg;base64," + frame
-        : frame;
-
+    const img = state.images[state.idx];
     const isLast = state.idx === state.frames.length - 1;
-    const delay  = isLast ? 1200 : 200;
+    const delay = isLast ? 1200 : 200;
 
+    el.src = img.src;
     state.idx = isLast ? 0 : state.idx + 1;
     setTimeout(() => animateLoop(stateKey, imgElementId), delay);
 }
@@ -215,10 +226,12 @@ async function updateSatellite() {
         if (visData.frames?.length) {
             loopState.vis.frames = visData.frames;
             loopState.vis.idx = 0;
+            await preloadFrames(loopState.vis);
         }
-        if (irData.frames?.length)  {
-            loopState.ir.frames  = irData.frames;
+        if (irData.frames?.length) {
+            loopState.ir.frames = irData.frames;
             loopState.ir.idx = 0;
+            await preloadFrames(loopState.ir);
         }
 
     } catch (e) {
@@ -239,10 +252,26 @@ async function updateNeSat() {
             visResp.json(), irResp.json(), cloud.json(), band9.json()
         ]);
 
-        if (visData.frames?.length)  { loopState.ne_vis.frames = visData.frames;  loopState.ne_vis.idx = 0; }
-        if (irData.frames?.length)   { loopState.ne_ir.frames  = irData.frames;   loopState.ne_ir.idx  = 0; }
-        if (cloudData.frames?.length)    { loopState.ne_cloud.frames   = cloudData.frames;    loopState.ne_cloud.idx   = 0; }
-        if (band9Data.frames?.length)    { loopState.ne_band9.frames   = band9Data.frames;    loopState.ne_band9.idx   = 0; }
+        if (visData.frames?.length)  { 
+            loopState.ne_vis.frames = visData.frames;  
+            loopState.ne_vis.idx = 0; 
+            await preloadFrames(loopState.ne_vis);}
+            
+        if (irData.frames?.length)   { 
+            loopState.ne_ir.frames  = irData.frames;   
+            loopState.ne_ir.idx  = 0; 
+            await preloadFrames(loopState.ne_ir);}
+
+        if (cloudData.frames?.length)    { 
+            loopState.ne_cloud.frames   = cloudData.frames;    
+            loopState.ne_cloud.idx   = 0; 
+            await preloadFrames(loopState.ne_cloud);}
+
+        if (band9Data.frames?.length)    { 
+            loopState.ne_band9.frames   = band9Data.frames;   
+             loopState.ne_band9.idx   = 0; 
+             await preloadFrames(loopState.ne_band9);}
+
     } catch (e) {
         console.error("Failed to update NE satellite:", e);
     }
@@ -256,6 +285,7 @@ async function updateRadar() {
         if (data.frames?.length) {
             loopState.radar.frames = data.frames;
             loopState.radar.idx = 0;
+            await preloadFrames(loopState.radar);
         }
     } catch (e) {
         console.error("Failed to update radar:", e);
@@ -270,6 +300,7 @@ async function updateModel() {
         if (data.urls?.length) {
             loopState.model.frames = data.urls.map(url => `${url}?t=${bust}`);
             loopState.model.idx = 0;
+            await preloadFrames(loopState.model);
         }
     } catch (e) {
         console.error("Failed to update model:", e);
