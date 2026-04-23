@@ -11,6 +11,7 @@ const PANELS = [
     { id: "panel-satellite-vis",  title: "GOES GeoColor" },
     { id: "panel-satellite-ir",   title: "GOES Band 13 Longwave IR" },
     { id: "panel-surface-analysis", title: "WPC Surface Analysis" },
+    { id: "panel-spc",             title: "SPC Severe Weather Outlook" },
     { id: "panel-forecast-daily", title: "NWS 5-Day Forecast" },
     { id: "panel-radar",          title: "MRMS Reflectivity" },
     { id: "panel-hrrr",          title: "HRRR Model Panels" },

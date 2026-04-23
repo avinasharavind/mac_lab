@@ -302,3 +302,31 @@ body {
     color: var(--text-secondary);
     font-size: 0.9rem;
 }
+
+#spc-container {
+    display: grid;
+    grid-template-columns: 1fr 280px;  /* main image | sidebar, adjust width to taste */
+    gap: 0.5rem;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+}
+
+#spc-categorical {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+#spc-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    height: 100%;
+    justify-content: center;
+}
+
+.spc-prob {
+    width: 100%;
+    object-fit: contain;
+}

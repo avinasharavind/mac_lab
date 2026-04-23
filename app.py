@@ -52,6 +52,13 @@ cache = {
     "satellite_ir_frames": [],
 }
 
+spc_urls = {
+    "categorical": "https://www.spc.noaa.gov/products/outlook/day1otlk_0100.png",
+    "tornado":     "https://www.spc.noaa.gov/products/outlook/day1probotlk_0100_torn.png",
+    "hail":        "https://www.spc.noaa.gov/products/outlook/day1probotlk_0100_hail.png",
+    "wind":        "https://www.spc.noaa.gov/products/outlook/day1probotlk_0100_wind.png",
+}
+
 # Get observations from ASOS station
 def fetch_observations():
     station = config["asos"]["station_id"]
@@ -288,7 +295,6 @@ def generate_hrrr_surface():
         )
         plt.close("all")
 
-
 # Flask routes
 @app.route("/")
 def index():
@@ -341,6 +347,19 @@ def model():
 def model_frame(filename):
     path = os.path.join(CACHE_DIR, "hrrr_surface", filename)
     return send_file(path, mimetype="image/png")
+
+
+
+@app.route("/api/spc/<product>")
+def spc(product):
+    if product not in spc_urls:
+        return jsonify({"error": "unknown product"}), 404
+    try:
+        r = requests.get(spc_urls[product], timeout=10)
+        r.raise_for_status()
+        return Response(r.content, mimetype="image/png")
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # Schedule cache updates.
 scheduler = BackgroundScheduler()
