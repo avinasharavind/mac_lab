@@ -13,6 +13,8 @@ const PANELS = [
     { id: "panel-surface-analysis", title: "WPC Surface Analysis" },
     { id: "panel-spc",             title: "SPC Severe Weather Outlook" },
     { id: "panel-forecast-daily", title: "NWS 5-Day Forecast" },
+    { id: "panel-ne-sat-1", title: "GOES Northeast Sector: GeoColor & Longwave IR" },
+    { id: "panel-ne-sat-2", title: "GOES Northeast Sector: Cloud Micro & Water Vapor" },
     { id: "panel-radar",          title: "MRMS Reflectivity" },
     { id: "panel-hrrr",          title: "HRRR Model Panels" },
 ];
@@ -139,7 +141,7 @@ async function updateForecasts() {
                     </div>
                     <div class="daily-right">
                         <div class="daily-temp">${period.temperature}°${period.temperatureUnit}</div>
-                        ${pop ? `<div class="daily-pop">Chance of Precip: ${pop}%</div>` : "0%"}
+                        ${pop !== null ? `<div class="daily-pop">Chance of Precip: ${pop}%</div>` : ""}
                         <div class="daily-other">Wind: ${period.windDirection} @ ${period.windSpeed}</div>
                     </div>
                 </div>
@@ -163,6 +165,10 @@ const loopState = {
     ir:  { frames: [], idx: 0, type: "base64" },
     radar: {frames: [], idx: 0, type: "base64"},
     model: { frames: [], idx: 0, type: "url" },
+    ne_vis: { frames: [], idx: 0, type: "base64"},
+    ne_ir: { frames: [], idx: 0, type: "base64"},
+    ne_cloud: { frames: [], idx: 0, type: "base64"},
+    ne_band9: { frames: [], idx: 0, type: "base64"},
 };
 
 function animateLoop(stateKey, imgElementId) {
@@ -205,6 +211,28 @@ async function updateSatellite() {
 
     } catch (e) {
         console.error("Failed to update satellite:", e);
+    }
+}
+
+async function updateNeSat() {
+    try {
+        const bust = Date.now();
+        const [visResp, irResp, cloud, band9] = await Promise.all([
+            fetch(`/api/ne-sat/vis?t=${bust}`),
+            fetch(`/api/ne-sat/ir?t=${bust}`),
+            fetch(`/api/ne-sat/cloud?t=${bust}`),   // replace with your actual route
+            fetch(`/api/ne-sat/band9?t=${bust}`),
+        ]);
+        const [visData, irData, cloudData, band9Data] = await Promise.all([
+            visResp.json(), irResp.json(), cloud.json(), band9.json()
+        ]);
+
+        if (visData.frames?.length)  { loopState.ne_vis.frames = visData.frames;  loopState.ne_vis.idx = 0; }
+        if (irData.frames?.length)   { loopState.ne_ir.frames  = irData.frames;   loopState.ne_ir.idx  = 0; }
+        if (cloudData.frames?.length)    { loopState.ne_cloud.frames   = cloudData.frames;    loopState.ne_cloud.idx   = 0; }
+        if (band9Data.frames?.length)    { loopState.ne_band9.frames   = band9Data.frames;    loopState.ne_band9.idx   = 0; }
+    } catch (e) {
+        console.error("Failed to update NE satellite:", e);
     }
 }
 
@@ -330,6 +358,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateObservations();
     updateForecasts();
     await updateSatellite();  // fetch initial frames
+    await updateNeSat();
+        animateLoop("ne_vis", "ne-sat-vis-img");
+        animateLoop("ne_ir",  "ne-sat-ir-img");
+        animateLoop("ne_cloud",   "ne-sat-cloud-img");
+        animateLoop("ne_band9",   "ne-sat-band9-img");
+        setInterval(updateNeSat, 5 * 60 * 1000);
     await updateRadar();
         animateLoop("radar", "radar-img");
         setInterval(updateRadar, RADAR_REFRESH_MS);

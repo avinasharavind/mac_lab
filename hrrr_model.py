@@ -164,7 +164,7 @@ def generate_hrrr(i, ds):
         )
 
         cb.ax.tick_params(color="#2a2724")
-        cb.ax.set_xlabel("Radar (dBZ)", color="#2a2724", size=12)
+        cb.ax.set_xlabel("Simulated Radar (dBZ)", color="#2a2724", size=12)
 
         ax = axes[1, 1]
         p4 = ax.pcolormesh(data.longitude, data.latitude, data.total_cloud_cover_atmosphere, cmap="Blues_r", vmin=0, vmax=100)

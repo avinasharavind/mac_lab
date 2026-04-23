@@ -305,7 +305,7 @@ body {
 
 #spc-container {
     display: grid;
-    grid-template-columns: 1fr 280px;  /* main image | sidebar, adjust width to taste */
+    grid-template-columns: 1fr 500px;  /* main image | sidebar, adjust width to taste */
     gap: 0.5rem;
     width: 100%;
     height: 100%;
@@ -328,5 +328,46 @@ body {
 
 .spc-prob {
     width: 100%;
+    object-fit: contain;
+}
+
+#ne-sat-grid-1 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.1rem;
+    width: 100%;
+    height: 100%;
+}
+
+
+#ne-sat-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.1rem;
+    width: 100%;
+    height: 100%;
+}
+
+.ne-sat-cell {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.ne-sat-label {
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    letter-spacing: 0.07em;
+    color: var(--text-secondary);
+    margin-bottom: 0.2rem;
+    flex-shrink: 0;
+    justify-content: center;
+}
+
+.ne-sat-cell img {
+    width: 100%;
+    height: 100%;
     object-fit: contain;
 }

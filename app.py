@@ -214,10 +214,14 @@ def fetch_goes_frames(n_frames=15):
     """
     # NOAA serves pre-rendered GOES imagery via a public image server —
     # much easier than processing raw L2 NetCDF files from S3.
-    base_url = "https://cdn.star.nesdis.noaa.gov/GOES19/ABI/CONUS"
+    base_url = "https://cdn.star.nesdis.noaa.gov/GOES19/ABI"
     products = {
-        "vis": ("GEOCOLOR", "satellite_vis_frames"),
-        "ir":  ("13",       "satellite_ir_frames"),
+        "CONUS-GEOCOLOR-5000x3000": ("CONUS/GEOCOLOR", "satellite_vis_frames"),
+        "CONUS-13-5000x3000":  ("CONUS/13",       "satellite_ir_frames"),
+        "ne-GEOCOLOR-1200x1200": ("SECTOR/NE/GEOCOLOR", "ne_vis_frames"),
+        "ne-13-1200x1200": ("SECTOR/NE/13", "ne_ir_frames"),
+        "ne-DayNightCloudMicroCombo-1200x1200": ("SECTOR/NE/DayNightCloudMicroCombo", "ne_cloud_frames"),
+        "ne-09-1200x1200": ("SECTOR/NE/09", "ne_band9_frames"),
     }
 
     for label, (product, cache_key) in products.items():
@@ -227,7 +231,7 @@ def fetch_goes_frames(n_frames=15):
             r.raise_for_status()
 
             matches = re.findall(
-                rf'href="(\d+_GOES19-ABI-CONUS-{product}-5000x3000\.jpg)"',
+                rf'href="(\d+_GOES19-ABI-{label}\.jpg)"',
                 r.text
             )
             if not matches:
@@ -292,6 +296,7 @@ def generate_hrrr_surface():
         subprocess.run(
             [sys.executable, "hrrr_model.py", f"{i}"],
             check=True,
+            timeout=180
         )
         plt.close("all")
 
@@ -329,6 +334,22 @@ def satellite_vis():
 def satellite_ir():
     return jsonify({"frames": cache["satellite_ir_frames"]})
 
+@app.route("/api/ne-sat/vis")
+def satellite_ne_vis():
+    return jsonify({"frames": cache["ne_vis_frames"]})
+
+@app.route("/api/ne-sat/ir")
+def satellite_ne_ir():
+    return jsonify({"frames": cache["ne_ir_frames"]})
+
+@app.route("/api/ne-sat/cloud")
+def satellite_ne_cloud():
+    return jsonify({"frames": cache["ne_cloud_frames"]})
+
+@app.route("/api/ne-sat/band9")
+def satellite_ne_band9():
+    return jsonify({"frames": cache["ne_band9_frames"]})
+
 @app.route("/api/radar")
 def radar():
     frames = []
@@ -347,8 +368,6 @@ def model():
 def model_frame(filename):
     path = os.path.join(CACHE_DIR, "hrrr_surface", filename)
     return send_file(path, mimetype="image/png")
-
-
 
 @app.route("/api/spc/<product>")
 def spc(product):
