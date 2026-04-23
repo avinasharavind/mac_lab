@@ -70,10 +70,10 @@ cache = {
 }
 
 spc_urls = {
-    "categorical": "https://www.spc.noaa.gov/products/outlook/day1otlk_0100.png",
-    "tornado":     "https://www.spc.noaa.gov/products/outlook/day1probotlk_0100_torn.png",
-    "hail":        "https://www.spc.noaa.gov/products/outlook/day1probotlk_0100_hail.png",
-    "wind":        "https://www.spc.noaa.gov/products/outlook/day1probotlk_0100_wind.png",
+    "categorical": "https://www.spc.noaa.gov/products/outlook/day1otlk.png",
+    "tornado":     "https://www.spc.noaa.gov/products/outlook/day1probotlk_torn.png",
+    "hail":        "https://www.spc.noaa.gov/products/outlook/day1probotlk_hail.png",
+    "wind":        "https://www.spc.noaa.gov/products/outlook/day1probotlk_wind.png",
 }
 
 noaa_urls = {
@@ -290,11 +290,11 @@ def fetch_goes_frames(n_frames=15):
         except Exception as e:
             print(f"[goes-{label}] Failed: {e}")
 
-def model_frames_are_stale(model_dir, max_age_hours=6):
+def model_frames_are_stale(model_dir, max_age_hours=3):
     existing = glob.glob(os.path.join(model_dir, "*.png"))
     if not existing:
         return True
-    if len(existing)<18:
+    if len(existing)<12:
         return True
     newest = max(os.path.getmtime(f) for f in existing)
     age_hours = (time.time() - newest) / 3600
@@ -305,13 +305,12 @@ def generate_hrrr_surface():
     os.makedirs(model_dir, exist_ok=True)
 
     try:
-        if not model_frames_are_stale(model_dir):
-            print("[hrrr-surface] Frames are current, skipping render")
-            return
-
         print("[hrrr-surface] Entering HRRR plotting scheme")
         for i in range(12):
-            if os.path.exists(f"frame{i}.png"):
+            if not model_frames_are_stale(model_dir):
+                print("[hrrr-surface] Frames are current, skipping render")
+                return
+            elif os.path.exists(f"frame{i}.png"):
                 print(f"[hrrr-surface] Frame {i} already exists, skipping")
                 continue
             else:

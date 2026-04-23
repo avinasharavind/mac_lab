@@ -386,6 +386,8 @@ body {
     overflow: hidden;
     min-height: 0;
     align-self: start;
+    width: 80%;
+    height: 80%;
 }
 
 .loading-msg {

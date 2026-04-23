@@ -15,8 +15,8 @@ const PANELS = [
     { id: "panel-spc",             title: "SPC Severe Weather Outlook" },
     { id: "panel-noaa",             title: "Assorted NOAA Outlooks/Monitors" },
     { id: "panel-forecast-daily", title: "NWS 5-Day Forecast" },
-    { id: "panel-ne-sat-1", title: "GOES Northeast Sector: GeoColor & Longwave IR" },
-    { id: "panel-ne-sat-2", title: "GOES Northeast Sector: Cloud Micro & Water Vapor" },
+    { id: "panel-ne-sat-1", title: "Northeast: GeoColor/Longwave IR" },
+    { id: "panel-ne-sat-2", title: "Northeast: Cloud Micro/Water Vapor" },
     { id: "panel-radar",          title: "MRMS Reflectivity" },
     { id: "panel-hrrr",          title: "HRRR Model Panels" },
 ];
