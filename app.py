@@ -309,10 +309,6 @@ def generate_hrrr_surface():
             print("[hrrr-surface] Frames are current, skipping render")
             return
 
-        # Clear old frames before rendering new ones
-        for f in glob.glob(os.path.join(model_dir, "*.png")):
-            os.remove(f)
-
         print("[hrrr-surface] Entering HRRR plotting scheme")
         for i in range(12):
             if os.path.exists(f"frame{i}.png"):
