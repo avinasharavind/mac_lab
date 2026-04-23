@@ -310,7 +310,7 @@ def generate_hrrr_surface():
             if not model_frames_are_stale(model_dir):
                 print("[hrrr-surface] Frames are current, skipping render")
                 return
-            elif os.path.exists(f"frame{i}.png"):
+            elif os.path.exists(f"frame{i+10}.png"):
                 print(f"[hrrr-surface] Frame {i} already exists, skipping")
                 continue
             else:

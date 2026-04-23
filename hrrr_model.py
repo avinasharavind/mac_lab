@@ -189,7 +189,7 @@ def generate_hrrr(i, ds):
 
         fig.suptitle(f"HRRR Forecast / Valid {data.valid_time.values.astype(str)[0:10] + " " + data.valid_time.values.astype(str)[11:16]}Z", y=0.95, size=16)
 
-        plt.savefig(f"cache/hrrr_surface/frame{i}.png", bbox_inches="tight")
+        plt.savefig(f"cache/hrrr_surface/frame{i+10}.png", bbox_inches="tight")
         del data, fig
         return f"[hrrr-surface] Created frame {i}"
 
