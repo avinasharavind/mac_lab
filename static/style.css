@@ -296,15 +296,15 @@ body {
             align-self: start;}
             
 .daily-right { text-align: right; 
-            align-self: baseline;}
+            align-self: start;}
 
 .night-period {
     background: var(--bg-panel);      /* slightly different shade to distinguish day/night */
 }
 
 .daily-name  { font-weight: 450; font-size: 2rem; }
-.daily-desc  { font-size: 1.5rem; color: var(--text-secondary); max-width: 70%;}
-.daily-temp  { font-size: 2.5rem; font-weight: 450; text-align: right; }
+.daily-desc  { font-size: 1.5rem; color: var(--text-secondary); max-width: 90%;}
+.daily-temp  { font-size: 2.5rem; font-weight: 500; text-align: right; }
 .daily-pop   { font-size: 1.25rem; color: var(--accent); text-align: right;}
 .daily-other   { font-size: 1.25rem; color: var(--text-secondary); text-align: right;}
 
