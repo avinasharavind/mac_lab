@@ -83,11 +83,9 @@ def register_radar():
 
     mpl.colormaps.register(cmap, name="radar")
 
-def generate_hrrr(i, ds):
-    now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M")
-    data = ds.sel(init_time=now, lead_time=np.timedelta64(i, "h"), method="nearest")
-    if os.path.exists(f"cache/hrrr_surface/{data.valid_time.values.astype(str)[0:10] + "T" + data.valid_time.values.astype(str)[11:16]}.png"):
-        return f"[hrrr-surface] Radar frame {i} exists already. Somehow made it into the script."
+def generate_hrrr(i, data):
+    if os.path.exists(f"cache/hrrr_surface/init_{data.init_time.values.astype(str)[5:13]}_{int(data.lead_time.values.item()/(1e9*60*60))}.png"):
+        return f"[hrrr-surface] Radar frame {i} exists already."
     else:
         lat1, lon1, lat2, lon2 = (22.5,  -125,  52.5,  -66)
         width_in = 6 * (lon2 - lon1) / (lat2 - lat1)
@@ -187,24 +185,30 @@ def generate_hrrr(i, ds):
         cb.ax.set_xlabel("Cloud Cover (%)", color="#2a2724", size=12)
 
 
-        fig.suptitle(f"HRRR Forecast / Valid {data.valid_time.values.astype(str)[0:10] + " " + data.valid_time.values.astype(str)[11:16]}Z", y=0.95, size=16)
+        fig.suptitle(f"HRRR Forecast / Valid {data.valid_time.values.astype(str)[0:10]} {data.valid_time.values.astype(str)[11:16]}Z", y=0.95, size=16)
 
-        plt.savefig(f"cache/hrrr_surface/frame{i+10}.png", bbox_inches="tight")
+        plt.savefig(f"cache/hrrr_surface/init_{data.init_time.values.astype(str)[5:13]}_{int(data.lead_time.values.item()/(1e9*60*60))}.png", bbox_inches="tight")
         del data, fig
         return f"[hrrr-surface] Created frame {i}"
 
 if __name__ == "__main__":
     register_radar()
     add_temp()
-    i = sys.argv[1]
+    tmpfile = sys.argv[1]
+    frame_idx = int(sys.argv[2])
     ds = xr.open_zarr("https://data.dynamical.org/noaa/hrrr/forecast-48-hour/latest.zarr")
+    now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M")
+    data = ds.sel(init_time=now, lead_time=np.timedelta64(frame_idx, "h"), method="nearest")
+
     try:
-        result = generate_hrrr(int(i), ds)
+        result = generate_hrrr(int(frame_idx), data)
         print(result)
     except Exception as e:
+        ds.close()
         print(f"[hrrr-surface] Something went wrong: {e}")
     finally:
         plt.close("all")
+        ds.close()
         gc.collect()
         sys.exit(0)  # explicit exit to ensure full cleanup
 

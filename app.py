@@ -20,6 +20,7 @@ import subprocess
 import sys
 import time
 import xarray as xr
+import tempfile
 
 def run_render(script, args, timeout=120):
     """Run a render subprocess, kill it if it hangs."""
@@ -37,6 +38,26 @@ def run_render(script, args, timeout=120):
     except Exception as e:
         print(f"[render] {script} failed: {e}")
 
+import threading
+import queue
+
+render_queue = queue.Queue()
+
+def render_worker():
+    """Single worker thread — processes one job at a time, no overlap possible."""
+    while True:
+        job = render_queue.get()
+        try:
+            job()
+        except Exception as e:
+            print(f"[render-worker] Job failed: {e}")
+        finally:
+            render_queue.task_done()
+
+# Start the worker thread once on startup
+worker_thread = threading.Thread(target=render_worker, daemon=True)
+worker_thread.start()
+
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -45,7 +66,6 @@ log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
 register_radar()
-
 
 '''
 Gets data from various NWS sources to display.
@@ -239,6 +259,12 @@ def fetch_radar_frames(n_frames=10):
 def generate_radar_frames(radar_frame, png_path):
     run_render("radar_helpers.py", [radar_frame, png_path])
 
+def schedule_radar_render():
+    if render_queue.qsize() > 0:
+        print("[radar] Render already queued, skipping")
+        return
+    render_queue.put(fetch_radar_frames)
+
 # Get GOES Satellite Data
 def fetch_goes_frames(n_frames=24):
     """
@@ -305,34 +331,29 @@ def fetch_goes_frames(n_frames=24):
         except Exception as e:
             print(f"[goes-{label}] Failed: {e}")
 
-def model_frames_are_stale(model_dir, max_age_hours=3):
-    existing = glob.glob(os.path.join(model_dir, "*.png"))
-    if not existing:
-        return True
-    if len(existing)<12:
-        return True
-    newest = max(os.path.getmtime(f) for f in existing)
-    age_hours = (time.time() - newest) / 3600
-    return age_hours > max_age_hours
+def fetch_hrrr_frames():    
+    ds = xr.open_zarr("https://data.dynamical.org/noaa/hrrr/forecast-48-hour/latest.zarr")
+    now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M")
+    data = ds.sel(init_time=now, method="nearest") 
+    
+    if len(os.listdir(f"{CACHE_DIR}/hrrr_surface/"))==12:
+        if os.listdir(f"{CACHE_DIR}/hrrr_surface/")[0][6:16] == data.init_time.values.astype(str)[0:10]:
+            print(f"[hrrr] Already up to date. Skipping.")
+            return
 
-def generate_hrrr_surface():
-    model_dir = os.path.join(CACHE_DIR, "hrrr_surface")
-    os.makedirs(model_dir, exist_ok=True)
+    # Pass the path to each render call
+    print("[hrrr-surface] Entering Loop")
+    for i in range(12):
+        run_render("hrrr_model.py", ["temp", str(i)])
 
-    try:
-        print("[hrrr-surface] Entering HRRR plotting scheme")
-        for i in range(12):
-            if not model_frames_are_stale(model_dir):
-                print("[hrrr-surface] Frames are current, skipping render")
-                return
-            elif os.path.exists(f"frame{i+10}.png"):
-                print(f"[hrrr-surface] Frame {i} already exists, skipping")
-                continue
-            else:
-                print(f"[hrrr-surface] Proceeding into frame {i}")
-                run_render("hrrr_model.py", [f"{i}"])
-    except:
-        print("[hrrr-surface] Something went wrong.")
+
+def schedule_hrrr_render():
+    """Called by scheduler — just enqueues the job, returns immediately."""
+    if render_queue.qsize() > 0:
+        print("[hrrr-surface] Render already queued, skipping")
+        return
+    render_queue.put(fetch_hrrr_frames)
+    print("[hrrr-surface] Render job queued")
 
 
 # Flask routes
@@ -453,11 +474,10 @@ scheduler.add_job(
 scheduler.add_job(fetch_goes_frames, "interval",
     seconds=config["refresh_intervals_seconds"]["satellite"])
 
-scheduler.add_job(fetch_radar_frames, "interval",
+scheduler.add_job(schedule_radar_render, "interval",
     seconds=config["refresh_intervals_seconds"]["radar"])
 
-scheduler.add_job(generate_hrrr_surface, "interval",
-    seconds=config["refresh_intervals_seconds"]["model"])
+scheduler.add_job(schedule_hrrr_render, "interval", hours=3)
 
 scheduler.start()
 
@@ -466,7 +486,7 @@ fetch_observations()
 fetch_forecast()
 fetch_goes_frames()
 fetch_radar_frames()
-generate_hrrr_surface()
+fetch_hrrr_frames()
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5001)
