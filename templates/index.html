@@ -10,7 +10,6 @@
 
     <!-- Top bar: location name + current time -->
     <header id="topbar">
-        <span id="sub-name"></span>
         <span id="location-name"><!-- filled by JS --></span>
         <span id="clock"></span>
     </header>
@@ -77,7 +76,7 @@
             <!-- Panel title + cycle indicator -->
             <div id="cycle-header">
                 <span id="cycle-title">--</span>
-                <div id="cycle-dots">
+                <div id="cycle-dot">
                     <!-- Dots inserted by JS -->
                 </div>
                 <span id="cycle-status">▶</span>
@@ -191,6 +190,40 @@
                         </div>
                         <div class="noaa-cell">
                             <img class="noaa-fcst" src="/api/noaa/drought" alt="Drought Monitor">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cycle-panel" id="panel-cpc-1">
+                    <div id="cpc-1-grid">
+                        <div class="noaa-cell">
+                            <img class="noaa-fcst" src="/api/cpc/6_10_temp" alt="6-10 Day Temp">
+                        </div>
+                        <div class="noaa-cell">
+                            <img class="noaa-fcst" src="/api/cpc/6_10_precip" alt="6-10 Day Precip">
+                        </div>
+                        <div class="noaa-cell">
+                            <img class="noaa-fcst" src="/api/cpc/8_14_temp" alt="8-14 Day Temp">
+                        </div>
+                        <div class="noaa-cell">
+                            <img class="noaa-fcst" src="/api/cpc/8_14_precip" alt="8-14 Day Temp">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cycle-panel" id="panel-cpc-2">
+                    <div id="cpc-2-grid">
+                        <div class="noaa-cell">
+                            <img class="noaa-fcst" src="/api/cpc/3_4_temp" alt="3-4 Week Temp">
+                        </div>
+                        <div class="noaa-cell">
+                            <img class="noaa-fcst" src="/api/cpc/3_4_precip" alt="3-4 Week Precip">
+                        </div>
+                        <div class="noaa-cell">
+                            <img class="noaa-fcst" src="/api/cpc/1mo_temp" alt="1 Month Temp">
+                        </div>
+                        <div class="noaa-cell">
+                            <img class="noaa-fcst" src="/api/cpc/1mo_precip" alt="1 Month Temp">
                         </div>
                     </div>
                 </div>

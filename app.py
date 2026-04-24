@@ -82,10 +82,21 @@ spc_urls = {
 
 noaa_urls = {
     "rainfall":         "https://www.wpc.ncep.noaa.gov/qpf/94ewbg.gif",
-    "24h_qpf":              "https://www.wpc.ncep.noaa.gov/qpf/fill_94qwbg.gif",
+    "24h_qpf":          "https://www.wpc.ncep.noaa.gov/qpf/fill_94qwbg.gif",
     "hazards_3_7":      "https://www.wpc.ncep.noaa.gov/threats/final/hazards_d3_7_contours.png",
     "nws_homepage":     "https://www.weather.gov/wwamap/png/US.png",
     "drought":          "https://droughtmonitor.unl.edu/data/png/current/current_usdm.png",
+}
+
+cpc_urls = {
+    "6_10_temp":    "https://www.cpc.ncep.noaa.gov/products/predictions/610day/610temp.new.gif",
+    "6_10_precip":  "https://www.cpc.ncep.noaa.gov/products/predictions/610day/610prcp.new.gif",
+    "8_14_temp":    "https://www.cpc.ncep.noaa.gov/products/predictions/814day/814temp.new.gif",
+    "8_14_precip":  "https://www.cpc.ncep.noaa.gov/products/predictions/814day/814prcp.new.gif",
+    "3_4_temp":     "https://www.cpc.ncep.noaa.gov/products/predictions/WK34/gifs/WK34temp.gif",
+    "3_4_precip":   "https://www.cpc.ncep.noaa.gov/products/predictions/WK34/gifs/WK34prcp.gif",
+    "1mo_temp":     "https://www.cpc.ncep.noaa.gov/products/predictions/long_range/lead14/off14_temp.gif",
+    "1mo_precip":   "https://www.cpc.ncep.noaa.gov/products/predictions/long_range/lead14/off14_prcp.gif",
 }
 
 # Get observations from ASOS station
@@ -367,6 +378,17 @@ def spc(product):
         return jsonify({"error": "unknown product"}), 404
     try:
         r = requests.get(spc_urls[product], timeout=10)
+        r.raise_for_status()
+        return Response(r.content, mimetype="image/png")
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/api/cpc/<product>")
+def cpc(product):
+    if product not in cpc_urls:
+        return jsonify({"error": "unknown product"}), 404
+    try:
+        r = requests.get(cpc_urls[product], timeout=10)
         r.raise_for_status()
         return Response(r.content, mimetype="image/png")
     except Exception as e:

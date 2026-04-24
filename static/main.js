@@ -8,19 +8,66 @@ const RADAR_REFRESH_MS = 2 * 60 * 1000;   // 2 minutes, matching config.yaml
 
 // Panels in rotation order. id must match the HTML element id.
 const PANELS = [
-    { id: "panel-satellite-vis",  title: "GOES GeoColor" },
-    { id: "panel-satellite-ir",   title: "GOES Band 13 Longwave IR" },
-    { id: "panel-surface-analysis", title: "WPC Surface Analysis" },
+    { id: "panel-satellite-vis",    title: "GOES GeoColor" },
+    { id: "panel-satellite-ir",     title: "GOES Band 13 Longwave IR" },
+    { id: "panel-forecast-daily",   title: "NWS 5-Day Forecast" },
     { id: "panel-nws-alerts",       title: "NWS Alerts Map" },
-    { id: "panel-spc",             title: "SPC Severe Weather Outlook" },
+    { id: "panel-surface-analysis", title: "WPC Surface Analysis" },
+    { id: "panel-spc",              title: "SPC Severe Weather Outlook" },
     { id: "panel-spc-outlooks",     title: "SPC Day 2-5 Outlooks"},
+    { id: "panel-ne-sat-1",         title: "Northeast: GeoColor/Longwave IR" },
+    { id: "panel-ne-sat-2",         title: "Northeast: Cloud Micro/Water Vapor" },
+    { id: "panel-radar",            title: "MRMS Reflectivity" },
+    { id: "panel-hrrr",             title: "HRRR Model Panels" },
     { id: "panel-noaa",             title: "Assorted NOAA Outlooks/Monitors" },
-    { id: "panel-forecast-daily", title: "NWS 5-Day Forecast" },
-    { id: "panel-ne-sat-1", title: "Northeast: GeoColor/Longwave IR" },
-    { id: "panel-ne-sat-2", title: "Northeast: Cloud Micro/Water Vapor" },
-    { id: "panel-radar",          title: "MRMS Reflectivity" },
-    { id: "panel-hrrr",          title: "HRRR Model Panels" },
+    { id: "panel-cpc-1",            title: "Climate Outlooks: Medium Range" },
+    { id: "panel-cpc-2",            title: "Climate Outlooks: Long Range" },
 ];
+
+const ROTATION = [
+    // MAIN
+    "panel-satellite-vis",
+    "panel-satellite-ir",
+    "panel-forecast-daily",
+    // PART 1
+    "panel-nws-alerts",
+    "panel-surface-analysis",
+    "panel-spc",
+    "panel-spc-outlooks",
+    "panel-noaa",
+    "panel-cpc-1",
+    "panel-cpc-2",
+    // MAIN
+    "panel-satellite-vis",
+    "panel-satellite-ir",
+    "panel-forecast-daily",
+    // PART 2
+    "panel-ne-sat-1",
+    "panel-ne-sat-2",
+    "panel-radar",
+    "panel-hrrr",
+]
+
+ROTATION.forEach((panelId, i) => {
+    const dot = document.createElement("div");
+    const isRepeat = ROTATION.indexOf(panelId) !== i;
+    dot.className = "cycle-dot" + (i === 0 ? " active" : "") + (isRepeat ? " repeat" : "");
+    dot.addEventListener("click", () => goToPanel(i));
+    const dotsEl = document.getElementById("cycle-dot");
+    dotsEl.appendChild(dot);
+});
+
+function buildDots() {
+    const dotsEl = document.getElementById("cycle-dot");
+    dotsEl.innerHTML = "";
+    ROTATION.forEach((panelId, i) => {
+        const dot = document.createElement("div");
+        const isRepeat = ROTATION.indexOf(panelId) !== i;
+        dot.className = "cycle-dot" + (i === 0 ? " active" : "") + (isRepeat ? " repeat" : "");
+        dot.addEventListener("click", () => goToPanel(i));
+        dotsEl.appendChild(dot);
+    });
+}
 
 // ---------------------------------------------------------------
 // UNIT CONVERSION HELPERS
@@ -331,36 +378,27 @@ let currentPanelIdx = 0;
 let cycleTimer = null;
 let isPaused = false;
 
-function buildDots() {
-    const dotsEl = document.getElementById("cycle-dots");
-    dotsEl.innerHTML = "";
-    PANELS.forEach((_, i) => {
-        const dot = document.createElement("div");
-        dot.className = "cycle-dot" + (i === 0 ? " active" : "");
-        dot.addEventListener("click", () => goToPanel(i));
-        dotsEl.appendChild(dot);
-    });
-}
-
 function goToPanel(idx) {
-    // Hide current
-    document.getElementById(PANELS[currentPanelIdx].id)
+
+    document.getElementById(ROTATION[currentPanelIdx])
         .classList.remove("active");
     document.querySelectorAll(".cycle-dot")[currentPanelIdx]
         .classList.remove("active");
 
-    // Show new
-    currentPanelIdx = idx;
-    document.getElementById(PANELS[currentPanelIdx].id)
+    currentPanelIdx = ((idx % ROTATION.length) + ROTATION.length) % ROTATION.length;
+
+    document.getElementById(ROTATION[currentPanelIdx])
         .classList.add("active");
     document.querySelectorAll(".cycle-dot")[currentPanelIdx]
         .classList.add("active");
-    document.getElementById("cycle-title").textContent =
-        PANELS[currentPanelIdx].title;
+
+    const panelId = ROTATION[currentPanelIdx];
+    const panelDef = PANELS.find(p => p.id === panelId);
+    document.getElementById("cycle-title").textContent = panelDef ? panelDef.title : "--";
 }
 
 function advancePanel() {
-    goToPanel((currentPanelIdx + 1) % PANELS.length);
+    goToPanel((currentPanelIdx + 1) % ROTATION.length);
 }
 
 function startCycleTimer() {
@@ -386,7 +424,6 @@ function togglePause() {
 document.addEventListener("DOMContentLoaded", async () => {
     // Set location name in header
     document.getElementById("location-name").textContent = LOCATION_NAME;
-    document.getElementById("sub-name").textContent = "Welcome to the Mac Lab!"
 
     // Clock — update every second
     updateClock();
@@ -399,9 +436,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Spacebar to pause/resume, arrow keys to advance/go back
     document.addEventListener("keydown", e => {
-        if (e.code === "Space") { e.preventDefault(); togglePause(); }
-        if (e.code === "ArrowRight") goToPanel((currentPanelIdx + 1) % PANELS.length);
-        if (e.code === "ArrowLeft")  goToPanel((currentPanelIdx - 1 + PANELS.length) % PANELS.length);
+        if (e.code === "Space")      { e.preventDefault(); togglePause(); }
+        if (e.code === "ArrowRight") goToPanel((currentPanelIdx + 1) % ROTATION.length);
+        if (e.code === "ArrowLeft")  goToPanel((currentPanelIdx - 1 + ROTATION.length) % ROTATION.length);
     });
 
     // Click cycle-status button to pause too
