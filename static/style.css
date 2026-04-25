@@ -15,7 +15,8 @@
     --bg-header: #832828;
     --accent:      #148a5f;       /* muted sage green — tweak to taste */
     --light:        #a7a7a7;
-    --font:        'Inter', sans-serif;
+    --font:         'Inter', sans-serif;
+    --font-numeric: "Roboto Mono", monospace;
 }
 
 html, body {
@@ -55,10 +56,11 @@ body {
 }
 
 #topbar #clock {
-    font-weight: 300;
-    font-size: 1.5rem;
+    font-weight: 400;
+    font-size: 1.25rem;
     color: var(--text-header);
     justify-self: end;
+    font-family: var(--font-numeric);
 }
 
 
@@ -107,17 +109,17 @@ body {
 .obs-row:last-child { border-bottom: none; }
 
 .obs-label {
+    font-weight: 500;
     color: var(--text-secondary);
 }
 
 .obs-value {
-    font-weight: 500;
     text-align: right;
 }
 
 #obs-metar-header {
     margin-top: 0.6rem;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     color: var(--text-primary);
     word-break: break-all;
     line-height: 1.4;
@@ -125,9 +127,9 @@ body {
 
 #obs-metar {
     margin-top: 0.2rem;
-    font-size: 0.8rem;
+    font-size: 1rem;
     color: var(--text-secondary);
-    font-family: monospace;       /* METAR string — monospace is appropriate here */
+    font-family: var(--font-numeric);       
     word-break: break-all;
     line-height: 1.4;
 }
@@ -144,7 +146,7 @@ body {
 }
 
 
-.forecast-time  { color: var(--text-secondary); width: 4rem; }
+.forecast-time  { color: var(--text-secondary); font-size: 1rem; width: 4rem; font-weight: 500;}
 .forecast-desc {
     flex: 1;
     padding: 0 0.4rem;
@@ -152,8 +154,8 @@ body {
     color: var(--text-secondary)
 }
 
-.forecast-temp  { font-weight: 500; width: 4rem; text-align: right; padding-right: 0.75rem;}
-.forecast-pop   { color: var(--accent); width: 2.5rem; text-align: right; }
+.forecast-temp  { font-weight: 500; font-size: 1rem; width: 4rem; text-align: right; padding-right: 0.75rem; font-family: var(--font-numeric);}
+.forecast-pop   { font-weight: 400; font-size: 1rem; color: var(--accent); width: 2.5rem; text-align: right; font-family: var(--font-numeric);}
 
 /* --- Right cycling area --- */
 #cycling-area {
@@ -313,7 +315,7 @@ body {
 
 .daily-name  { font-weight: 450; font-size: 2.25rem; }
 .daily-desc  { font-size: 1.5rem; color: var(--text-secondary); max-width: 90%;}
-.daily-temp  { font-size: 2.5rem; font-weight: 500; text-align: right; }
+.daily-temp  { font-size: 2.5rem; font-weight: 500; text-align: right; font-family: var(--font-numeric);}
 .daily-pop   { font-size: 1.25rem; color: var(--accent); text-align: right;}
 .daily-other   { font-size: 1.25rem; color: var(--text-secondary); text-align: right;}
 
@@ -405,8 +407,8 @@ body {
     overflow: hidden;
     min-height: 0;
     align-self: center;
-    width: 95%;
-    height: 95%;
+    width: 80%;
+    height: 80%;
 }
 
 .noaa-full {

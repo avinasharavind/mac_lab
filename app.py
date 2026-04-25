@@ -170,7 +170,7 @@ def fetch_forecast():
             headers=headers, timeout=10
         )
         r.raise_for_status()
-        hourly_periods = r.json()["properties"]["periods"][:12]  # next 12 hours
+        hourly_periods = r.json()["properties"]["periods"][:10]  # next 12 hours
 
         # Daily forecast (used for the 5-day panel)
         r2 = requests.get(
@@ -346,6 +346,8 @@ def fetch_hrrr_frames():
         if os.listdir(f"{CACHE_DIR}/hrrr_surface/")[0][:13] == f"init_{data.init_time.values.astype(str)[5:13]}":
             print(f"[hrrr] Already up to date. Skipping.")
             return
+        else:
+            os.remove(f"{CACHE_DIR}/hrrr_surface/*.png")
 
     # Pass the path to each render call
     print("[hrrr-surface] Entering Loop")
