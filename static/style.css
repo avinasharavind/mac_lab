@@ -15,7 +15,7 @@
     --bg-header: #832828;
     --accent:      #148a5f;       /* muted sage green — tweak to taste */
     --light:        #a7a7a7;
-    --font:        'Tahoma', sans-serif;
+    --font:        'Inter', sans-serif;
 }
 
 html, body {
@@ -302,16 +302,16 @@ body {
             flex-direction: column; 
             flex: 1;
             min-width: 0;
-            align-self: start;}
+            align-self: first baseline;}
             
 .daily-right { text-align: right; 
-            align-self: start;}
+            align-self: first baseline;}
 
 .night-period {
     background: var(--bg-panel);      /* slightly different shade to distinguish day/night */
 }
 
-.daily-name  { font-weight: 450; font-size: 2rem; }
+.daily-name  { font-weight: 450; font-size: 2.25rem; }
 .daily-desc  { font-size: 1.5rem; color: var(--text-secondary); max-width: 90%;}
 .daily-temp  { font-size: 2.5rem; font-weight: 500; text-align: right; }
 .daily-pop   { font-size: 1.25rem; color: var(--accent); text-align: right;}
