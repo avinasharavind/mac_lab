@@ -56,6 +56,7 @@
                         <span class="obs-label">Weather</span>
                         <span class="obs-value" id="obs-sky">--</span>
                     </div>
+                    <div id="obs-metar-header">Most recent METAR:</div>
                     <div id="obs-metar">--</div>
                 </div>
             </section>
@@ -99,20 +100,23 @@
                     </div>
                 </div>
 
-                <!-- WPC Surface Analysis -->
-                <div class="cycle-panel" id="panel-surface-analysis">
-                    <img id="surface-analysis-img" src="/api/surface_analysis" alt="WPC Prognosis Chart" width="90%" height="90%">
-                </div>
-
-                <div class="cycle-panel" id="panel-nws-alerts">
-                    <img id="nws-alerts-img" src="/api/noaa/nws_homepage" alt="NWS Alerts" width="100%" height="100%">
-                </div>
-
                 <!-- 5-day forecast -->
                 <div class="cycle-panel" id="panel-forecast-daily">
                     <div id="forecast-daily-content">
                         <!-- Inserted by JS -->
                     </div>
+                </div>
+
+                <div class="cycle-panel" id="panel-nws-alerts">
+                    <img class="noaa-full" src="api/noaa/alerts">
+                </div>
+
+                <div class="cycle-panel" id="panel-wpc-analysis">
+                    <img class="noaa-full" src="api/noaa/wpc_analysis_color">
+                </div>
+
+                <div class="cycle-panel" id="panel-nws-radar">
+                    <img class="noaa-full" src="api/noaa/radar">
                 </div>
 
                 <div class="cycle-panel" id="panel-radar">
@@ -180,16 +184,16 @@
                 <div class="cycle-panel" id="panel-noaa">
                     <div id="noaa-grid">
                         <div class="noaa-cell">
-                            <img class="noaa-fcst" src="/api/noaa/24h_qpf" alt="WPC 1-day QPF">
+                            <img class="noaa-fcst" src="/api/noaa/wpc_analysis" alt="Surface Analysis">
                         </div>
                         <div class="noaa-cell">
-                            <img class="noaa-fcst" src="/api/noaa/rainfall" alt="Excessive Rainfall Outlook">
+                            <img class="noaa-fcst" src="/api/noaa/wpc_analysis_color" alt="WPC Prog Chart">
                         </div>
                         <div class="noaa-cell">
-                            <img class="noaa-fcst" src="/api/noaa/hazards_3_7" alt="3-7 Day Hazard Map">
+                            <img class="noaa-fcst" src="/api/noaa/rainfall" alt="WPC Rainfall Outlook">
                         </div>
                         <div class="noaa-cell">
-                            <img class="noaa-fcst" src="/api/noaa/drought" alt="Drought Monitor">
+                            <img class="noaa-fcst" src="/api/noaa/hazards_3_7" alt="Day 3-7 Hazards">
                         </div>
                     </div>
                 </div>

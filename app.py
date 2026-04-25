@@ -83,7 +83,6 @@ CACHE_DIR = "cache"
 cache = {
     "observations": None,
     "forecast_short": None,
-    "surface_analysis_url": "https://www.wpc.ncep.noaa.gov/NationalForecastChart/staticmaps/noaad1.png",
     "radar_frames": [], 
     "satellite_vis_frames": [],
     "satellite_ir_frames": [],
@@ -104,8 +103,11 @@ noaa_urls = {
     "rainfall":         "https://www.wpc.ncep.noaa.gov/qpf/94ewbg.gif",
     "24h_qpf":          "https://www.wpc.ncep.noaa.gov/qpf/fill_94qwbg.gif",
     "hazards_3_7":      "https://www.wpc.ncep.noaa.gov/threats/final/hazards_d3_7_contours.png",
-    "nws_homepage":     "https://www.weather.gov/wwamap/png/US.png",
+    "wpc_analysis":     "https://www.wpc.ncep.noaa.gov/sfc/namussfcwbg.gif",
+    "wpc_analysis_color": "https://www.wpc.ncep.noaa.gov/NationalForecastChart/staticmaps/noaad1.png",
     "drought":          "https://droughtmonitor.unl.edu/data/png/current/current_usdm.png",
+    "alerts":           "https://www.spc.noaa.gov/products/wwa.png",
+    "radar":            "https://radar.weather.gov/ridge/standard/CONUS-LARGE_loop.gif"
 }
 
 cpc_urls = {
@@ -123,12 +125,16 @@ cpc_urls = {
 def fetch_observations():
     station = config["asos"]["station_id"]
     url = f"https://api.weather.gov/stations/{station}/observations/latest"
+    raw_metar = f"https://aviationweather.gov/api/data/metar?ids={station}&format=json"
     headers = {"maclab-test": "maclab-display-app"}  # NWS requires this
     try:
         r = requests.get(url, headers=headers, timeout=10)
         r.raise_for_status()
+        raw = requests.get(raw_metar, headers=headers, timeout=10)
+        raw.raise_for_status()
         data = r.json()
         props = data["properties"]
+        raw = raw.json()[0].get("rawOb")
 
         # Pull out just the fields we care about displaying
         cache["observations"] = {
@@ -144,7 +150,7 @@ def fetch_observations():
             "pressure_sl_pa":   props.get("barometricPressure", {}).get("value"),
             "sky_condition":    props.get("textDescription"),
             "weather_condition":props.get("presentWeather"),
-            "raw_metar":        props.get("rawMessage"),
+            "raw_metar":        raw,
         }
         print(f"[obs] Updated observations for {station}")
     except Exception as e:
@@ -335,9 +341,9 @@ def fetch_hrrr_frames():
     ds = xr.open_zarr("https://data.dynamical.org/noaa/hrrr/forecast-48-hour/latest.zarr")
     now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M")
     data = ds.sel(init_time=now, method="nearest") 
-    
+
     if len(os.listdir(f"{CACHE_DIR}/hrrr_surface/"))==12:
-        if os.listdir(f"{CACHE_DIR}/hrrr_surface/")[0][6:16] == data.init_time.values.astype(str)[0:10]:
+        if os.listdir(f"{CACHE_DIR}/hrrr_surface/")[0][:13] == f"init_{data.init_time.values.astype(str)[5:13]}":
             print(f"[hrrr] Already up to date. Skipping.")
             return
 
@@ -371,16 +377,6 @@ def observations():
 def forecast():
     """Return cached NWS forecast as JSON."""
     return jsonify(cache["forecast_short"])
-
-@app.route("/api/surface_analysis")
-def surface_analysis():
-    try:
-        r = requests.get(cache["surface_analysis_url"], timeout=10)
-        r.raise_for_status()
-        print("[wpc] Retrieved surface analysis")
-        return Response(r.content, mimetype="image/gif")
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
     
 @app.route("/api/noaa/<product>")
 def noaa(product):
@@ -477,7 +473,7 @@ scheduler.add_job(fetch_goes_frames, "interval",
 scheduler.add_job(schedule_radar_render, "interval",
     seconds=config["refresh_intervals_seconds"]["radar"])
 
-scheduler.add_job(schedule_hrrr_render, "interval", hours=3)
+scheduler.add_job(schedule_hrrr_render, "interval", hours=2)
 
 scheduler.start()
 

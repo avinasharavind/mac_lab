@@ -114,9 +114,17 @@ body {
     text-align: right;
 }
 
-#obs-metar {
+#obs-metar-header {
     margin-top: 0.6rem;
-    font-size: 0.72rem;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    word-break: break-all;
+    line-height: 1.4;
+}
+
+#obs-metar {
+    margin-top: 0.2rem;
+    font-size: 0.8rem;
     color: var(--text-secondary);
     font-family: monospace;       /* METAR string — monospace is appropriate here */
     word-break: break-all;
@@ -139,10 +147,11 @@ body {
 .forecast-desc {
     flex: 1;
     padding: 0 0.4rem;
+    font-size: 1rem;
     color: var(--text-secondary)
 }
 
-.forecast-temp  { font-weight: 500; width: 4rem; text-align: right; padding-right: 0.5rem;}
+.forecast-temp  { font-weight: 500; width: 4rem; text-align: right; padding-right: 0.75rem;}
 .forecast-pop   { color: var(--accent); width: 2.5rem; text-align: right; }
 
 /* --- Right cycling area --- */
@@ -196,7 +205,6 @@ body {
 }
 
 .cycle-dot.repeat {
-    border: 1px solid var(--accent);
     background: var(--text-secondary);
 }
 .cycle-dot.repeat.active {
@@ -398,6 +406,14 @@ body {
     align-self: start;
     width: 80%;
     height: 80%;
+}
+
+.noaa-full {
+    overflow: hidden;
+    min-height: 0;
+    align-self: center;
+    width: 100%;
+    height: 100%;
 }
 
 .loading-msg {

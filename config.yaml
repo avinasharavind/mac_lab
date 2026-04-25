@@ -13,8 +13,8 @@ radar:
   site: "KBGM"
 
 refresh_intervals_seconds:
-  observations: 1200
-  forecast: 1800
+  observations: 900
+  forecast: 900
   radar: 300
   satellite: 300
   surface_analysis: 3600

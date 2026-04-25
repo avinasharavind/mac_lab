@@ -11,37 +11,39 @@ const PANELS = [
     { id: "panel-satellite-vis",    title: "GOES GeoColor" },
     { id: "panel-satellite-ir",     title: "GOES Band 13 Longwave IR" },
     { id: "panel-forecast-daily",   title: "NWS 5-Day Forecast" },
-    { id: "panel-nws-alerts",       title: "NWS Alerts Map" },
-    { id: "panel-surface-analysis", title: "WPC Surface Analysis" },
     { id: "panel-spc",              title: "SPC Severe Weather Outlook" },
     { id: "panel-spc-outlooks",     title: "SPC Day 2-5 Outlooks"},
     { id: "panel-ne-sat-1",         title: "Northeast: GeoColor/Longwave IR" },
     { id: "panel-ne-sat-2",         title: "Northeast: Cloud Micro/Water Vapor" },
     { id: "panel-radar",            title: "MRMS Reflectivity" },
     { id: "panel-hrrr",             title: "HRRR Model Panels" },
-    { id: "panel-noaa",             title: "Assorted NOAA Outlooks/Monitors" },
-    { id: "panel-cpc-1",            title: "Climate Outlooks: Medium Range" },
-    { id: "panel-cpc-2",            title: "Climate Outlooks: Long Range" },
+    { id: "panel-nws-alerts",       title: "NWS Alerts" },
+    { id: "panel-nws-radar",        title: "NWS Radar Mosaic" },
+    { id: "panel-wpc-analysis",     title: "WPC Analysis" },
+    { id: "panel-noaa",             title: "WPC Analysis and Forecasts" },
+    { id: "panel-cpc-1",            title: "CPC Outlooks: Medium Range" },
+    { id: "panel-cpc-2",            title: "CPC Outlooks: Long Range" },
 ];
 
 const ROTATION = [
     // MAIN
     "panel-satellite-vis",
     "panel-satellite-ir",
+    "panel-nws-radar",
     "panel-forecast-daily",
-    // PART 1
+    // ONGOING WEATHER & OUTLOOKS
     "panel-nws-alerts",
-    "panel-surface-analysis",
+    "panel-wpc-analysis",
     "panel-spc",
     "panel-spc-outlooks",
-    "panel-noaa",
     "panel-cpc-1",
     "panel-cpc-2",
     // MAIN
     "panel-satellite-vis",
     "panel-satellite-ir",
+    "panel-nws-radar",
     "panel-forecast-daily",
-    // PART 2
+    // ITHACA
     "panel-ne-sat-1",
     "panel-ne-sat-2",
     "panel-radar",
@@ -116,9 +118,15 @@ function formatWind(dir_deg, spd_ms, gust_ms) {
 
 function updateClock() {
     const now = new Date();
-    const utc = now.toUTCString().replace("GMT", "UTC").slice(0, -4);
-    const local = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    document.getElementById("clock").textContent = `${utc} Z / ${local} EDT`;
+    const utc = now.toUTCString().slice(17, -4);
+    const day = now.toLocaleString("en-US", { weekday: "long", 
+                                        month: "long", 
+                                        year: "numeric",
+                                        day: "2-digit", });
+    const local = now.toLocaleDateString([], { 
+                                        hour: "2-digit", 
+                                        minute: "2-digit" }).slice(11,)
+    document.getElementById("clock").textContent = `${day} / ${local} EDT / ${utc} Z `;
 }
 
 // ---------------------------------------------------------------
@@ -460,7 +468,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         setInterval(updateRadar, RADAR_REFRESH_MS);
     await updateModel();
         animateLoop("model", "hrrr-img");
-        setInterval(updateModel, 6 * 60 * 60 * 1000);  // every 6 hours
+        setInterval(updateModel, 2 * 60 * 60 * 1000);  // every 6 hours
         
     startLoops();             // start animation
 

@@ -84,7 +84,7 @@ def register_radar():
     mpl.colormaps.register(cmap, name="radar")
 
 def generate_hrrr(i, data):
-    if os.path.exists(f"cache/hrrr_surface/init_{data.init_time.values.astype(str)[5:13]}_{int(data.lead_time.values.item()/(1e9*60*60))}.png"):
+    if os.path.exists(f"cache/hrrr_surface/init_{data.init_time.values.astype(str)[5:13]}_{data.valid_time.values.astype(str)[8:16]}.png"):
         return f"[hrrr-surface] Radar frame {i} exists already."
     else:
         lat1, lon1, lat2, lon2 = (22.5,  -125,  52.5,  -66)
@@ -187,7 +187,7 @@ def generate_hrrr(i, data):
 
         fig.suptitle(f"HRRR Forecast / Valid {data.valid_time.values.astype(str)[0:10]} {data.valid_time.values.astype(str)[11:16]}Z", y=0.95, size=16)
 
-        plt.savefig(f"cache/hrrr_surface/init_{data.init_time.values.astype(str)[5:13]}_{int(data.lead_time.values.item()/(1e9*60*60))}.png", bbox_inches="tight")
+        plt.savefig(f"cache/hrrr_surface/init_{data.init_time.values.astype(str)[5:13]}_{data.valid_time.values.astype(str)[8:16]}.png", bbox_inches="tight")
         del data, fig
         return f"[hrrr-surface] Created frame {i}"
 
