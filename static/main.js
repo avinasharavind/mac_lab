@@ -20,9 +20,10 @@ const PANELS = [
     { id: "panel-nws-alerts",       title: "NWS Alerts" },
     { id: "panel-nws-radar",        title: "NWS Radar Mosaic" },
     { id: "panel-wpc-analysis",     title: "WPC Analysis" },
-    { id: "panel-noaa",             title: "WPC Analysis and Forecasts" },
+    { id: "panel-wpc-outlooks",              title: "WPC Rainfall Forecasts" },
     { id: "panel-cpc-1",            title: "CPC Outlooks: Medium Range" },
     { id: "panel-cpc-2",            title: "CPC Outlooks: Long Range" },
+    { id: "panel-drought",          title: "Drought & Fire Monitor" },
 ];
 
 const ROTATION = [
@@ -34,10 +35,15 @@ const ROTATION = [
     // ONGOING WEATHER & OUTLOOKS
     "panel-nws-alerts",
     "panel-wpc-analysis",
+    "panel-wpc-outlooks",
     "panel-spc",
     "panel-spc-outlooks",
+
+    // CLIMATE AND DROUGHT
+    "panel-drought",
     "panel-cpc-1",
     "panel-cpc-2",
+    
     // MAIN
     "panel-satellite-vis",
     "panel-satellite-ir",

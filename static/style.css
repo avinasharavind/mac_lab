@@ -60,9 +60,7 @@ body {
     font-size: 1.25rem;
     color: var(--text-header);
     justify-self: end;
-    font-family: var(--font-numeric);
 }
-
 
 /* --- Main layout --- */
 #dashboard {
@@ -128,8 +126,7 @@ body {
 #obs-metar {
     margin-top: 0.2rem;
     font-size: 1rem;
-    color: var(--text-secondary);
-    font-family: var(--font-numeric);       
+    color: var(--text-secondary);      
     word-break: break-all;
     line-height: 1.4;
 }
@@ -144,7 +141,6 @@ body {
     border-bottom: 0.5px solid var(--border);
     height: 2.75rem;
 }
-
 
 .forecast-time  { color: var(--text-secondary); font-size: 1rem; width: 4rem; font-weight: 500;}
 .forecast-desc {
@@ -348,6 +344,34 @@ body {
 }
 
 .spc-prob {
+    width: 100%;
+    object-fit: contain;
+}
+
+#wpc-container {
+    display: grid;
+    grid-template-columns: 1fr 400px;  /* main image | sidebar, adjust width to taste */
+    gap: 0.5rem;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+}
+
+#wpc-day1 {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+#wpc-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    height: 100%;
+    justify-content: center;
+}
+
+.wpc-future {
     width: 100%;
     object-fit: contain;
 }

@@ -97,6 +97,8 @@ spc_urls = {
     "day3":        "https://www.spc.noaa.gov/products/outlook/day3otlk.png",
     "day4":        "https://www.spc.noaa.gov/products/exper/day4-8/day4prob.gif",
     "day5":        "https://www.spc.noaa.gov/products/exper/day4-8/day5prob.gif",
+    "fire":        "https://www.spc.noaa.gov/products/fire_wx/day1fireotlk-overview.png",
+    "d2fire":      "https://www.spc.noaa.gov/products/fire_wx/day2otlk_fire.png",
 }
 
 noaa_urls = {
@@ -107,7 +109,13 @@ noaa_urls = {
     "wpc_analysis_color": "https://www.wpc.ncep.noaa.gov/NationalForecastChart/staticmaps/noaad1.png",
     "drought":          "https://droughtmonitor.unl.edu/data/png/current/current_usdm.png",
     "alerts":           "https://www.spc.noaa.gov/products/wwa.png",
-    "radar":            "https://radar.weather.gov/ridge/standard/CONUS-LARGE_loop.gif"
+    "radar":            "https://radar.weather.gov/ridge/standard/CONUS-LARGE_loop.gif",
+    "drought_forecast":      "https://www.cpc.ncep.noaa.gov/products/expert_assessment/mdohomeweb.png",
+    "day1wpc":          "https://www.wpc.ncep.noaa.gov/qpf/94ewbg.gif",
+    "day2wpc":          "https://www.wpc.ncep.noaa.gov/qpf/98ewbg.gif",
+    "day3wpc":          "https://www.wpc.ncep.noaa.gov/qpf/99ewbg.gif",
+    "day4wpc":          "https://www.wpc.ncep.noaa.gov/qpf/ero_d45/images/d4wbg.gif",
+
 }
 
 cpc_urls = {

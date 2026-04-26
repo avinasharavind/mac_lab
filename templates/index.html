@@ -184,22 +184,17 @@
                      </div>
                 </div>
 
-                <div class="cycle-panel" id="panel-noaa">
-                    <div id="noaa-grid">
-                        <div class="noaa-cell">
-                            <img class="noaa-fcst" src="/api/noaa/wpc_analysis" alt="Surface Analysis">
-                        </div>
-                        <div class="noaa-cell">
-                            <img class="noaa-fcst" src="/api/noaa/wpc_analysis_color" alt="WPC Prog Chart">
-                        </div>
-                        <div class="noaa-cell">
-                            <img class="noaa-fcst" src="/api/noaa/rainfall" alt="WPC Rainfall Outlook">
-                        </div>
-                        <div class="noaa-cell">
-                            <img class="noaa-fcst" src="/api/noaa/hazards_3_7" alt="Day 3-7 Hazards">
+                <div class="cycle-panel" id="panel-wpc-outlooks">
+                    <div id="wpc-container">
+                        <img id="wpc-day1" src="/api/noaa/day1wpc" alt="WPC Day 1 Outlook">
+                        <div id="wpc-sidebar">
+                            <img class="wpc-future" src="/api/noaa/day2wpc" alt="WPC Day 2 Outlook">
+                            <img class="wpc-future" src="/api/noaa/day3wpc"    alt="WPC Day 3 Outlook">
+                            <img class="wpc-future" src="/api/noaa/day4wpc"    alt="WPC Day 4 Outlook">
                         </div>
                     </div>
                 </div>
+
 
                 <div class="cycle-panel" id="panel-cpc-1">
                     <div id="cpc-1-grid">
@@ -234,6 +229,24 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="cycle-panel" id="panel-drought">
+                    <div id="drought-grid">
+                        <div class="noaa-cell">
+                            <img class="noaa-fcst" src="/api/noaa/drought" alt="Drought Monitor">
+                        </div>
+                        <div class="noaa-cell">
+                            <img class="noaa-fcst" src="/api/noaa/drought_forecast" alt="Drought Forecast">
+                        </div>
+                        <div class="noaa-cell">
+                            <img class="noaa-fcst" src="/api/spc/fire" alt="Fire Weather Outlook">
+                        </div>
+                        <div class="noaa-cell">
+                            <img class="noaa-fcst" src="/api/spc/d2fire" alt="Day 2 Fire Weather">
+                        </div>
+                    </div>
+                </div>
+
 
             </div>
 
