@@ -356,7 +356,7 @@ def fetch_hrrr_frames():
             return
         else:
             for file in os.listdir(f"{CACHE_DIR}/hrrr_surface/"):
-                os.remove(f"{CACHE_DIR}/hrrr_surface/{file})
+                os.remove(f"{CACHE_DIR}/hrrr_surface/{file}")
             os.rmdir(f"{CACHE_DIR}/hrrr_surface/")
 
     # Pass the path to each render call
