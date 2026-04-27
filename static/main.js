@@ -39,6 +39,11 @@ const ROTATION = [
     "panel-spc",
     "panel-spc-outlooks",
 
+    // MAIN
+    "panel-satellite-vis",
+    "panel-satellite-ir",
+    "panel-nws-radar",
+    "panel-forecast-daily",
     // CLIMATE AND DROUGHT
     "panel-drought",
     "panel-cpc-1",
