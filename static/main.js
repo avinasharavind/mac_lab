@@ -379,6 +379,28 @@ async function updateModel() {
     }
 }
 
+function refreshStaticImages() {
+    const bust = Date.now();
+    const staticImages = [
+    { id: "nws-alerts-img", url: "/api/noaa/alerts" },
+    { id: "wpc-analysis-img", url: "/api/noaa/wpc_analysis_color"},
+    { id: "nws-radar-img", url: "/api/noaa/radar"},
+    { id: "spc-categorical", url: "/api/spc/categorical"},
+    { id: "spc-tor", url: "/api/spc/tornado"},
+    { id: "spc-hail", url: "/api/spc/hail"},
+    { id: "spc-wind", url: "/api/spc/wind"},
+    { id: "spc-2", url: "/api/spc/day2"},
+    { id: "spc-3", url: "/api/spc/day3"},
+    { id: "spc-4", url: "/api/spc/day4"},
+    { id: "spc-5", url: "/api/spc/day5"},
+    ];
+
+    for (const { id, url } of staticImages) {
+        const el = document.getElementById(id);
+        if (el) el.src = `${url}?t=${bust}`;
+    }
+}
+
 function startLoops() {
     animateLoop("vis", "satellite-vis-img");
     animateLoop("ir",  "satellite-ir-img");
@@ -484,4 +506,5 @@ document.addEventListener("DOMContentLoaded", async () => {
     setInterval(updateObservations, 5  * 60 * 1000);
     setInterval(updateForecasts,    30 * 60 * 1000);
     setInterval(updateSatellite,    5  * 60 * 1000);
+    setInterval(refreshStaticImages, 5 * 60 * 1000);  // every hour
 });

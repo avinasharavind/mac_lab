@@ -395,7 +395,9 @@ def noaa(product):
     try:
         r = requests.get(noaa_urls[product], timeout=10)
         r.raise_for_status()
-        return Response(r.content, mimetype="image/png")
+        response = Response(r.content, mimetype="image/png")
+        response.headers["Cache-Control"] = "no-store"
+        return response
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
@@ -406,7 +408,9 @@ def spc(product):
     try:
         r = requests.get(spc_urls[product], timeout=10)
         r.raise_for_status()
-        return Response(r.content, mimetype="image/png")
+        response = Response(r.content, mimetype="image/png")
+        response.headers["Cache-Control"] = "no-store"
+        return response
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
@@ -417,7 +421,9 @@ def cpc(product):
     try:
         r = requests.get(cpc_urls[product], timeout=10)
         r.raise_for_status()
-        return Response(r.content, mimetype="image/png")
+        response = Response(r.content, mimetype="image/png")
+        response.headers["Cache-Control"] = "no-store"
+        return response
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
