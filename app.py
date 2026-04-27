@@ -350,6 +350,9 @@ def fetch_hrrr_frames():
     now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M")
     data = ds.sel(init_time=now, method="nearest") 
 
+    os.makedirs(f"{CACHE_DIR}/hrrr_surface/", exist_ok=True)
+
+
     if len(os.listdir(f"{CACHE_DIR}/hrrr_surface/"))==12:
         if os.listdir(f"{CACHE_DIR}/hrrr_surface/")[0][:13] == f"init_{data.init_time.values.astype(str)[5:13]}":
             print(f"[hrrr] Already up to date. Skipping.")
