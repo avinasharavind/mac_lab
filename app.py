@@ -355,6 +355,8 @@ def fetch_hrrr_frames():
             print(f"[hrrr] Already up to date. Skipping.")
             return
         else:
+            for file in os.listdir(f"{CACHE_DIR}/hrrr_surface/"):
+                os.remove(file)
             os.rmdir(f"{CACHE_DIR}/hrrr_surface/")
 
     # Pass the path to each render call
