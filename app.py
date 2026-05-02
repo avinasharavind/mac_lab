@@ -20,7 +20,9 @@ import subprocess
 import sys
 import time
 import xarray as xr
+import pandas as pd
 import tempfile
+from hourly import get_hours
 
 def run_render(script, args, timeout=120):
     """Run a render subprocess, kill it if it hangs."""
@@ -178,7 +180,8 @@ def fetch_forecast():
             headers=headers, timeout=10
         )
         r.raise_for_status()
-        hourly_periods = r.json()["properties"]["periods"][:10]  # next 12 hours
+        hourly_periods = r.json()["properties"]["periods"]  
+
 
         # Daily forecast (used for the 5-day panel)
         r2 = requests.get(
@@ -188,10 +191,21 @@ def fetch_forecast():
         r2.raise_for_status()
         daily_periods = r2.json()["properties"]["periods"][:10]  # ~5 days (day+night each)
 
+        r3 = requests.get(
+            f"https://api.weather.gov/gridpoints/{office}/{gx},{gy}",
+            headers=headers, timeout=10
+        )
+        r3.raise_for_status()
+        griddata = r3.json()
+
+        df = get_hours(hourly_periods, griddata)
+
         cache["forecast_short"] = {
             "hourly": hourly_periods,
             "daily":  daily_periods,
+            "griddata": griddata
         }
+
         print(f"[forecast] Updated forecast for {office} {gx},{gy}")
     except Exception as e:
         print(f"[forecast] Failed to fetch forecast: {e}")
@@ -211,6 +225,7 @@ def fetch_radar_frames(n_frames=10):
     os.makedirs(radar_dir, exist_ok=True)
 
     try:
+        print("[radar] Attempting to get data")
         response = s3.list_objects_v2(Bucket=bucket, Prefix=prefix)
         objects = sorted(
             response.get("Contents", []),
@@ -225,58 +240,47 @@ def fetch_radar_frames(n_frames=10):
         recent = objects[-i:]
 
         for obj in recent:
-            if obj["LastModified"].minute%10 == 0:
+            if obj["LastModified"].minute%10 <= 1:
                 # Use just the filename as the local name
                 fname = obj["Key"].split("/")[-1]
                 dest_path = os.path.join(radar_dir, fname)
                 
-                if not os.path.exists(dest_path):
+                if not os.path.exists(dest_path.replace(".gz", ".png")):
                     data = s3.get_object(Bucket=bucket, Key=obj["Key"])
                     with open(dest_path, "wb") as f:
                         f.write(data["Body"].read())
                     print(f"[radar] Downloaded: {fname}")
 
-        # Trim oldest files beyond N
-        all_files = sorted(glob.glob(os.path.join(radar_dir, "*.gz")))
-        while len(all_files) > n_frames:
-            os.remove(all_files.pop(0))
+                png_path = os.path.join(radar_dir, fname.replace(".gz", ".png"))
+                
+                if not os.path.exists(png_path):
+                    try:
+                        generate_radar_frames(dest_path, png_path)
+                        print(f"[radar] Rendered: {png_path}")
+                        os.remove(os.path.join(radar_dir, fname.replace(".gz", ".5b7b6.idx")))
+                        os.remove(os.path.join(radar_dir, fname.replace(".gz", "")))
+                        os.remove(os.path.join(radar_dir, fname))
+                    except subprocess.TimeoutExpired:
+                            print(f"[radar] Render timed out: {fname}")
+                    except subprocess.CalledProcessError as e:
+                            print(f"[radar] Render failed: {fname}: {e}")
 
     except Exception as e:
-        print(f"[radar] Failed: {e}")
+        print(f"[radar] Fully failed: {e}")
     
-
-    png_dir = os.path.join(CACHE_DIR, "radar_frames")
-    os.makedirs(png_dir, exist_ok=True)
-
-    for gz_path in sorted(glob.glob(os.path.join(radar_dir, "*.gz"))):
-        fname = os.path.basename(gz_path)
-        png_path = os.path.join(png_dir, fname.replace(".gz", ".png"))
-
-        if not os.path.exists(png_path):
-            try:
-                generate_radar_frames(gz_path, png_path)
-                print(f"[radar] Rendered: {png_path}")
-            except subprocess.TimeoutExpired:
-                    print(f"[radar] Render timed out: {fname}")
-            except subprocess.CalledProcessError as e:
-                    print(f"[radar] Render failed: {fname}: {e}")
-
     # Trim oldest PNGs beyond N
-    all_pngs = sorted(glob.glob(os.path.join(png_dir, "*.png")))
+    all_pngs = sorted(glob.glob(os.path.join(radar_dir, "*.png")))
     while len(all_pngs) > n_frames:
         os.remove(all_pngs.pop(0))
 
     # Update cache with sorted PNG paths
-    cache["radar_frames"] = sorted(glob.glob(os.path.join(png_dir, "*.png")))
+    cache["radar_frames"] = sorted(glob.glob(os.path.join(radar_dir, "*.png")))
     print(f"[radar] Loop has {len(cache['radar_frames'])} frames")
 
 def generate_radar_frames(radar_frame, png_path):
     run_render("radar_helpers.py", [radar_frame, png_path])
 
 def schedule_radar_render():
-    if render_queue.qsize() > 0:
-        print("[radar] Render already queued, skipping")
-        return
     render_queue.put(fetch_radar_frames)
 
 # Get GOES Satellite Data
@@ -350,29 +354,22 @@ def fetch_hrrr_frames():
     now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M")
     data = ds.sel(init_time=now, method="nearest") 
 
-    os.makedirs(f"{CACHE_DIR}/hrrr_surface/", exist_ok=True)
-
-
-    if len(os.listdir(f"{CACHE_DIR}/hrrr_surface/"))==12:
+    if len(os.listdir(f"{CACHE_DIR}/hrrr_surface/"))==48:
         if os.listdir(f"{CACHE_DIR}/hrrr_surface/")[0][:13] == f"init_{data.init_time.values.astype(str)[5:13]}":
             print(f"[hrrr] Already up to date. Skipping.")
             return
         else:
             for file in os.listdir(f"{CACHE_DIR}/hrrr_surface/"):
                 os.remove(f"{CACHE_DIR}/hrrr_surface/{file}")
-            os.rmdir(f"{CACHE_DIR}/hrrr_surface/")
 
     # Pass the path to each render call
     print("[hrrr-surface] Entering Loop")
-    for i in range(12):
+    for i in range(48):
         run_render("hrrr_model.py", ["temp", str(i)])
 
 
 def schedule_hrrr_render():
     """Called by scheduler — just enqueues the job, returns immediately."""
-    if render_queue.qsize() > 0:
-        print("[hrrr-surface] Render already queued, skipping")
-        return
     render_queue.put(fetch_hrrr_frames)
     print("[hrrr-surface] Render job queued")
 
@@ -382,6 +379,16 @@ def schedule_hrrr_render():
 def index():
     """Serve the main dashboard page."""
     return render_template("index.html")
+
+@app.route("/forecast/")
+def forecast_page():
+    """Serve the dashboard page."""
+    return render_template("dashboard.html")
+
+@app.route("/api/hourData")
+def forecast_csv():
+    path = os.path.join(CACHE_DIR, "forecasts/hourData.csv")  # adjust filename
+    return send_file(path, mimetype="text/csv")
 
 @app.route("/api/observations")
 def observations():
@@ -473,8 +480,9 @@ def model():
 @app.route("/api/hrrr_surface/frame/<path:filename>")
 def model_frame(filename):
     path = os.path.join(CACHE_DIR, "hrrr_surface", filename)
-    return send_file(path, mimetype="image/png")
-
+    response = send_file(path, mimetype="image/png")
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 # Schedule cache updates.
 scheduler = BackgroundScheduler()
@@ -494,16 +502,19 @@ scheduler.add_job(fetch_goes_frames, "interval",
 scheduler.add_job(schedule_radar_render, "interval",
     seconds=config["refresh_intervals_seconds"]["radar"])
 
-scheduler.add_job(schedule_hrrr_render, "interval", hours=2)
+scheduler.add_job(schedule_hrrr_render, "interval", hours=1)
 
 scheduler.start()
+
 
 # Run fetches once immediately on startup so cache isn't empty
 fetch_observations()
 fetch_forecast()
 fetch_goes_frames()
-fetch_radar_frames()
-fetch_hrrr_frames()
+
+# Start these after a bit
+schedule_radar_render()
+schedule_hrrr_render()
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5001)
+    app.run(debug=True, host="0.0.0.0", port=5001, use_reloader=False)

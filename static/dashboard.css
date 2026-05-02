@@ -1,0 +1,68 @@
+:root {
+    --bg:          #f0e6da;       /* warm off-white */
+    --bg-panel:    #e8ded2;       /* slightly darker panel background */
+    --border:      #704242;       /* subtle borders */
+    --text-primary:#2a2724;       /* near-black, warm tone */
+    --text-secondary: #6b6560;    /* muted label text */
+    --text-header: #f0e6da;
+    --bg-header: #832828;
+    --accent:      #148a5f;       /* muted sage green — tweak to taste */
+    --light:        #a7a7a7;
+    --font:         'Inter', sans-serif;
+    --font-numeric: "Roboto Mono", monospace;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;             /* no scrollbars — this is a display page */
+}
+
+body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font);
+    font-size: 24px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* --- Top bar --- */
+#topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr 3fr;
+    align-items: baseline;
+    padding: 0.4rem 1.2rem;
+    width: 100%;
+    background: var(--bg-header);
+    border-bottom: 0.5px solid var(--border);
+    font-size: 24px;
+    color: var(--text-header);
+    flex-shrink: 0;
+}
+
+#topbar #header {
+    font-weight: 700;
+    font-size: 40px;
+    color: var(--text-header);
+    justify-self: left;
+}
+
+#topbar #page {
+    font-weight: 300;
+    font-size: 28px;
+    font-style: italic;
+    color: var(--text-header);
+    justify-self: left;
+}
+
+#topbar #clock {
+    font-weight: 300;
+    font-size: 28px;
+    color: var(--text-header);
+    justify-self: end;
+    padding-right: 35px;
+}

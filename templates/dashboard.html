@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<head>
+	<title>
+	Forecast Dashboard
+	</title> 
+</head>
+<div id="container"></div>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
+</style>
+<link rel="stylesheet" href="/static/dashboard.css"/>
+
+<header id="topbar">
+	<span id="header">Cornell Weather</span>
+	<span id="page"> Forecast Dashboard</span>
+	<span id="clock"></span>
+</header>
+
+<script type="module">
+import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+// Created by Avinash Aravind for fun :)		24.2
+// Shoutout to the d3.js documentation and adjacent resources.
+
+// Part 0: SVG & Data Setup
+	//0.1: Define SVG dimensions
+	const height = 900
+	const width = 1600
+
+	//0.2: Create SVG
+	const svg = d3.create("svg")
+		.attr("id", "mainSVG")
+		.attr("viewBox", [0, 0, width, height])
+		.style("color", "#2a2724")
+
+	//0.3: Create visible viewbox for scaling [testing purposes only]
+	
+	svg.append("rect")
+		.attr("x", "0")
+		.attr("y", "0")
+		.attr("width", width)
+		.attr("height", height)
+		.attr("fill", "none")
+		.attr("stroke", "black"); 
+
+	//0.4: Import Data
+	var hours = await d3.csv("/api/hourData", (d) => {
+		return {
+			pdNum: d.pdNum,
+			stTime: new Date(d.stTime),
+			readTime: d.readTime,
+			temp: d.temp,
+			PoPs: d.PoPs,
+			dewpt: d.dewpt,
+			relHum: d.relHum,
+			wdSpd: d.wdSpd, 
+			wdDir: d.wdDir,
+			icon: d.icon,
+			appTemp: d.appTemp, 
+			cldCvr: d.cldCvr, 
+			wdGst: d.wdGst,
+			shrtFcst: d.shrtFcst,
+		};
+	});
+
+// Part 1: Gauge Initialization Elements
+	//1.2: Temperature Reading
+	const tempLoc = "translate(320,540)"
+	const reading = svg.append("g")
+	reading.attr("transform", tempLoc);
+	const tempValue = reading.append("text")
+		.text("0")
+		.attr("font-size", "125px")
+		.attr("font-weight", "bolder")
+		.attr("text-anchor", "middle")
+		.attr("fill", "#2a2724")
+		.attr("transform", "translate(0,0)");
+
+// Part 2: The Dashboard Arc
+	// Most of this is directly inspired by https://observablehq.com/@d3/arc-tween?intent=fork. Go check it out!
+	// 2.1: Define Variables
+	const dash = svg.append("g").attr("transform", "translate(320,540)");
+
+	const outerRadius = 225
+	const innerRadius = 175
+	const tau = 2 * Math.PI;
+	const min = -tau/3
+	const max = tau/3
+	const color = "purple"
+	const cFormula = d3.scaleSequential(d3.interpolateSpectral);
+
+	// 2.2: Create Arc w/o end angle
+	const arc = d3.arc()
+		.innerRadius(innerRadius)
+		.outerRadius(outerRadius)
+		.startAngle(min);
+
+	// 2.3: Create background gauge
+	const background = dash.append("path")
+		.datum({endAngle: max})
+		.style("fill", "#ddd")
+		.style("stroke", "black")
+		.style("stroke-width", "4")
+		.attr("d", arc);
+
+	// 2.4: Create foreground gauge
+	const foreground = dash.append("path")
+		.datum({endAngle: min})
+		.style("fill", "purple")
+		.style("stroke", "black")
+		.style("stroke-width", "4")
+		.attr("d", arc);
+
+	// 2.5: Create interval for Tween
+	const interval = d3.timeout(function() {
+		let angle = getAngle()
+		foreground.transition()
+			.duration(1000)
+			.attrTween("d", arcTween(angle))
+			.styleTween("fill", colorTween(angle));
+
+	}, 250)
+
+	// 2.6: Get Angle
+	function getAngle() {
+		return (hours[0]["temp"]/100)*(2*tau/3)-tau/3
+	}
+
+	// 2.7: Animate Gauge
+	function arcTween(newAngle) {
+		return function(d) {
+			const interpolate = d3.interpolate(d.endAngle, newAngle);
+			return function(t) {
+				d.endAngle = interpolate(t);
+				return arc(d);
+			}
+		}
+	}
+
+	// 2.8: Color Scale Gauge & Update Temp Value
+	function colorTween(newAngle) {
+		return function(d) {
+			const angPct = ((newAngle+tau/3)/(2*tau/3))
+			const tempolate = d3.interpolateRound(tempValue.text(), Math.round(100*angPct))
+			return function(t) {
+				const oldAngPct = ((d.endAngle+tau/3)/(2*tau/3))
+				this.style.fill = cFormula(1.10-oldAngPct)
+				tempValue.text(tempolate(t))
+				return this.style.fill;
+			}
+	}}
+	
+
+// Part 3: Main Display Elements
+	//3.1: Current Weather Icon Display
+	const graphic = svg.append("g")
+		.attr("id", "graphic")
+		.attr("opacity", "0");
+	const iconLabel = graphic.append("text")
+			.text(hours[0]["shrtFcst"])
+			.attr("x", "1150")
+			.attr("y", "775")
+			.attr("font-size", "40px")
+			.attr("font-weight", "bold")
+			.attr("text-anchor", "middle")
+			.attr("fill", "#2a2724");
+			
+	//3.2: Labels
+		//3.2.1: Temperature Label
+		const tempLabel = graphic.append("text")
+			.text("Temperature (°F)")
+			.attr("x", "320")
+			.attr("y", "600")
+			.attr("font-size", "35px")
+			.attr("text-anchor", "middle")
+			.attr("fill", "#2a2724");		
+		//3.2.2: Precipitation Potential Value
+		const popsValue = graphic.append("text")
+			.attr("id", "popsValue")
+			.text(hours[0]["PoPs"])
+			.attr("font-size", "75px")
+			.attr("font-weight", "bolder")
+			.attr("text-anchor", "middle")
+			.attr("fill", "#2a2724")
+			.attr("x", "520")
+			.attr("y", "340");
+		//3.2.3: Precipitation Potential Label
+		const popsLabel = graphic.append("text")
+			.text("Chance of Precipitation (%)")
+			.attr("x", "520")
+			.attr("y", "270")
+			.attr("font-size", "20px")
+			.attr("text-anchor", "middle")
+			.attr("fill", "#2a2724");
+		//3.2.4: Feels Like Value
+		const appTempValue = graphic.append("text")
+			.text(hours[0]["appTemp"])
+			.attr("font-size", "50px")
+			.attr("font-weight", "bolder")
+			.attr("text-anchor", "middle")
+			.attr("fill", "#2a2724")
+			.attr("x", "120")
+			.attr("y", "710");
+		//3.2.5: Feels Like Label
+		const appTempLabel = graphic.append("text")
+			.text("Feels Like (°F)")
+			.attr("x", "120")
+			.attr("y", "740")
+			.attr("font-size", "20px")
+			.attr("text-anchor", "middle")
+			.attr("fill", "#2a2724");
+		//3.2.6: Wind Direction Value
+		const wdDirValue = graphic.append("text")
+			.text(hours[0]["wdDir"])
+			.attr("font-size", "50px")
+			.attr("font-weight", "bolder")
+			.attr("text-anchor", "middle")
+			.attr("fill", "#2a2724")
+			.attr("x", "320")
+			.attr("y", "710");
+		//3.2.7: Wind Direction Label
+		const wdDirLabel = graphic.append("text")
+			.text("Wind Direction")
+			.attr("font-size", "20px")
+			.attr("text-anchor", "middle")
+			.attr("fill", "#2a2724")
+			.attr("x", "320")
+			.attr("y", "740");
+		//3.2.8: Wind Speed Value
+		const wdSpdValue = graphic.append("text")
+			.text(hours[0]["wdSpd"])
+			.attr("font-size", "50px")
+			.attr("font-weight", "bolder")
+			.attr("text-anchor", "middle")
+			.attr("fill", "#2a2724")
+			.attr("x", "520")
+			.attr("y", "710");
+		//3.2.9: Wind Speed Label
+		const wdSpdLabel = graphic.append("text")
+			.text("Wind Speed (mph)")
+			.attr("font-size", "20px")
+			.attr("text-anchor", "middle")
+			.attr("fill", "#2a2724")
+			.attr("x", "520")
+			.attr("y", "740");
+		//3.2.10: Gauge Label
+		const gaugeLabel = graphic.append("text")
+			.attr("id", "gaugeLabel")
+			.text("Current Conditions")
+			.attr("font-size", "45px")
+			.attr("font-weight", "bolder")
+			.attr("fill", "#2a2724")
+			.attr("x", "50")
+			.attr("y", "200");
+		//3.2.11: Time Series Label
+		const timeSeriesLabel = graphic.append("text")
+			.attr("id", "timeSeriesLabel")
+			.text("Hourly Forecast: ")
+			.attr("font-size", "45px")
+			.attr("font-weight", "bolder")
+			.attr("fill", "#2a2724")
+			.attr("x", "700")
+			.attr("y", "200");
+		//3.2.12: Currently Displayed Time Series
+		const currentDisplay = timeSeriesLabel.append("tspan")
+			.attr("id", "currentDisplay")
+			.text("Temperature")
+			.attr("font-size", "40")
+			.attr("font-weight", "400")
+		//3.2.13: Cloud Cover Value
+		const cldCvrValue = graphic.append("text")
+			.attr("id", "cldCvrValue")
+			.text(hours[0]["cldCvr"])
+			.attr("font-size", "50px")
+			.attr("font-weight", "bolder")
+			.attr("text-anchor", "middle")
+			.attr("fill", "#2a2724")
+			.attr("x", "220")
+			.attr("y", "810");
+		//3.2.14: Cloud Cover Label
+		const cldCvrLabel = graphic.append("text")
+			.attr("id", "cldCvrLabel")
+			.text("Cloud Cover (%)")
+			.attr("font-size", "20px")
+			.attr("text-anchor", "middle")
+			.attr("fill", "#2a2724")
+			.attr("x", "220")
+			.attr("y", "840");
+		//3.2.13: Relative Humidity Value
+		const relHumValue = graphic.append("text")
+			.attr("id", "relHumValue")
+			.text(hours[0]["relHum"])
+			.attr("font-size", "50px")
+			.attr("font-weight", "bolder")
+			.attr("text-anchor", "middle")
+			.attr("fill", "#2a2724")
+			.attr("x", "420")
+			.attr("y", "810");
+		//3.2.14: Relative Humidity Label
+		const relHumLabel = graphic.append("text")
+			.attr("id", "relHumLabel")
+			.text("Relative Humidity (%)")
+			.attr("font-size", "20px")
+			.attr("text-anchor", "middle")
+			.attr("fill", "#2a2724")
+			.attr("x", "420")
+			.attr("y", "840");
+		//3.2.15: Dew Point Value
+		const dewpointValue = graphic.append("text")
+			.attr("id", "dewpointValue")
+			.text(hours[0]["dewpt"])
+			.attr("font-size", "75px")
+			.attr("font-weight", "bolder")
+			.attr("text-anchor", "middle")
+			.attr("fill", "#2a2724")
+			.attr("x", "120")
+			.attr("y", "340");
+		//3.2.16: Dew Point Label
+		const dewpointLabel = graphic.append("text")
+			.attr("id", "dewpointLabel")
+			.text("Dew Point (°F)")
+			.attr("font-size", "20px")
+			.attr("text-anchor", "middle")
+			.attr("fill", "#2a2724")
+			.attr("x", "120")
+			.attr("y", "270");
+
+	//3.3: Fade Elements In
+	const gaugeFade = d3.timeout(function() {
+		graphic.transition()
+			.duration(150)
+			.attrTween("opacity", opacityTween())
+	}, 2000)
+	
+	//3.4: Function for Opacity Fade
+	function opacityTween() {
+		return function(g) {
+			const opacityInterpolate = d3.interpolateString(graphic.attr("opacity"), "1")
+			return function(t) {
+				graphic.attr("opacity", opacityInterpolate(t))
+				return graphic.attr("opacity")
+			}
+		}
+	}
+
+// Part 4: Time Series Elements
+	// 4.1: Create the y-axis
+	const y = d3.scaleLinear()
+		.domain([0, 100])
+		.range([375, 25]);
+
+	const yaxis = graphic.append("g")
+		.attr("transform", `translate(750,300)`)
+		.attr("stroke", "#2a2724")
+		.call(d3.axisLeft(y)
+				.tickSize(-800))
+		.call(g => g.selectAll(".tick line")
+          .attr("stroke-opacity", "0.75")
+          .attr("stroke-dasharray", "2.2")
+		)
+		.call(g => g.select(".domain")
+			.attr("opacity", "0"))
+		.call(g => g.selectAll(".tick text")
+				.attr("font-size", "21")
+				.attr("dx", "-16")
+			);
+
+	// 4.2: Create svg and define variables
+	const currentColor = "#2a2724"
+	const graphwidth = 800
+	const graphheight = 450
+	var startingHour = 0
+	const endingHour = hours.length-1
+
+	const graph = graphic.append("svg")
+		.attr("viewBox", [-10, 0, graphwidth+5, graphheight])
+		.attr("x", "750")
+		.attr("y", "300")
+		.attr("width", graphwidth)
+		.attr("height", graphheight)
+
+	// 4.3: Create the x-axis
+	var x = d3.scaleTime()
+		.domain([hours[startingHour]["stTime"], hours[endingHour]["stTime"]])
+		.range([4, endingHour*50]);
+	
+	const xaxis = graph.append("g")
+		.attr("transform", `translate(0,375)`)
+		.attr("stroke", "#2a2724")
+		.call(d3.axisBottom(x)
+			.ticks(d3.timeHour.every(2))
+			.tickSize(15))
+		.call(g => g.selectAll(".tick text")
+			.attr("font-size", "21")
+			.attr("dy", "20")
+			.attr("dx", "20")
+			.attr("transform-origin", "(right, right)")
+			.attr("transform", "rotate(0)")
+			)
+		.call(g => g.selectAll(".tick line")
+			.remove())
+		.call(g => g.select(".domain")
+			.attr("opacity", "0")
+	);
+
+	// 4.4: Plot the temperature data
+	const barsCont = graph.append("g")
+		.attr("id", "barsCont")
+	const bars = barsCont.selectAll()
+			.data(hours)
+			bars.join("rect")
+				.attr("id", (d) => "bar" + d.pdNum)
+				.attr("x", (d) => x(d.stTime))
+				.attr("y", (d) => y(d.temp))
+				.attr("height", (d) => y(0) - y(d.temp))
+				.attr("width", "40")
+				.attr("transform", "translate(0,0)")
+				.attr("fill", (d) => cFormula(1.1 - d.temp/100))
+				.attr("stroke", "black")
+				.attr("stroke-width", "3px")
+				.attr("opacity", "100%")
+				.on("mouseenter", function(d) { 
+					barHover(d.target)})
+				.on("mouseleave", function(d) { 
+					barLeave(d.target)})
+
+	// 4.5: Animate the changing axis
+	function getStartingHour(direction) {
+		if (startingHour-12<0 && direction==-1) {
+			return 0
+		} else {
+			if (startingHour+(direction*12) > endingHour-15) {
+				return endingHour-15
+			} else {
+				return startingHour+(direction*12)
+			}
+		}
+		};
+
+	function axisChange(direction) {d3.timeout(function() {
+		startingHour = (getStartingHour(direction))
+		xaxis.transition()
+			.duration(1000)
+			.call(d3.axisBottom(
+				d3.scaleTime()
+					.domain([hours[startingHour]["stTime"], hours[endingHour]["stTime"]])
+					.range([4, (endingHour*50)-(startingHour*50)]))
+				.ticks(d3.timeHour.every(2))
+				.tickSize(15))
+			.call(g => g.selectAll(".tick text")
+				.attr("font-size", "21")
+				.attr("dy", "20")
+				.attr("dx", "20")
+				.attr("transform-origin", "(right, right)")
+				.attr("transform", "rotate(0)"))
+			.call(g => g.selectAll(".tick line")
+				.attr("opacity", "0"))
+			.call(g => g.select(".domain")
+				.attr("opacity", "0"));
+	})}
+	
+	// 4.6: Animate the bars as axis changes
+	function barMove() {d3.timeout(function() {
+		const tempBars = barsCont.selectAll("rect")
+		const newLen = startingHour*50
+		tempBars.transition()
+			.duration(1000)
+			.attrTween("transform", barTween(newLen, tempBars));
+	}) }
+
+	// 4.7: Function to animate bar movement
+	function barTween(newLen, tempBars) {
+		return function(d) {
+			const moveInterpolate = d3.interpolateString(tempBars.attr("transform"), "translate(-" + newLen + ",0)")
+			return function(t) {
+				tempBars.attr("transform", moveInterpolate(t))
+				return tempBars.attr("transform")
+			}
+		}
+	}
+
+	// 4.8: Create Arrow Buttons
+	const rightButton = graphic.append("svg:image")
+		.attr("id", "rightButton")
+		.attr("href", "/static/images/buttons/right-arrow.svg")
+		.attr("width", "50px")
+		.attr("height", "50px")
+		.attr("x", "1500px")
+		.attr("y", "250px")
+	
+	const leftButton = graphic.append("image")
+		.attr("id", "leftButton")
+		.attr("href", "/static/images/buttons/left-arrow.svg")
+		.attr("width", "50px")
+		.attr("height", "50px")
+		.attr("x", "750px")
+		.attr("y", "250px")
+	
+	// 4.9: Change Currently Displayed Time Period
+	
+		// 4.9.1: Right Button
+			rightButton.on("mouseenter", function(){
+				rightButton.attr("opacity","50%")
+			})			
+			rightButton.on("click", function(){
+				axisChange(1)
+				barMove()
+			})
+			rightButton.on("mouseleave", function(){
+				rightButton.attr("opacity", "100%")
+			})
+
+		// 4.9.2: Left Button
+			leftButton.on("mouseenter", function(){
+				leftButton.attr("opacity", "50%")
+			})
+			leftButton.on("click", function(){
+				axisChange(-1)
+				barMove()
+			})
+			leftButton.on("mouseleave", function(){
+				leftButton.attr("opacity", "100%")
+			})
+
+// Part 5: Hourly Forecast Interactions
+	// 5.1: Update Gauge on Hover
+	function barHover(target) { 
+		const currentBar = barsCont.select("#"+target.id)
+		const barData = currentBar.datum()
+		currentBar.attr("opacity", "50%")
+		tempValue.text(barData.temp)
+		relHumValue.text(barData.relHum)
+		appTempValue.text(barData.appTemp)
+		wdDirValue.text(barData.wdDir)
+		wdSpdValue.text(barData.wdSpd)
+		gaugeLabel.text(barData.readTime)
+		iconLabel.text(barData.shrtFcst)
+		popsValue.text(barData.PoPs)
+		cldCvrValue.text(barData.cldCvr)
+		foreground.transition()
+			.duration(250)
+			.attrTween("d", arcTween((barData.temp/100)*(2*tau/3)-tau/3))
+			.styleTween("fill", colorTween((barData.temp/100)*(2*tau/3)-tau/3));
+		
+	}
+	function barLeave(target) {
+		const currentBar = barsCont.select("#"+target.id)
+		currentBar.attr("opacity", "100%")
+	}
+
+// Part 6: Change Currently Displayed Information
+	// 6.1: Construct the SVG for the dropdown menu
+	const hourlyDropdown = graphic.append("svg")
+		.attr("id", "hourlyDropdown")
+		.attr("viewBox", [0, 0, 400, 300])
+		.attr("x", "1075px")
+		.attr("y", "215px")
+		.attr("width", "0px")
+		.attr("height", "0px")
+		
+	// 6.2: Add background for dropdown menu
+	hourlyDropdown.append("rect")
+		.attr("id", "dropdownBackground")
+		.attr("width", "400px")
+		.attr("height", "300px")
+		.attr("stroke-width", "0px")
+		.attr("fill", "#f0e6da")
+		.attr("opacity", "95%")
+	
+	// 6.3: Add text for other options
+	const PoPsSelector = hourlyDropdown.append("text")
+		.attr("id", "PoPsSelector")
+		.text("Chance of Precipitation")
+		.attr("dy", "50px")
+		.attr("dx", "20px")
+		.attr("font-size", "30px")
+		.attr("font-weight", "100px")
+	
+	const wdSpdSelector = hourlyDropdown.append("text")
+		.attr("id", "wdSpdSelector")
+		.text("Wind Speed")
+		.attr("dy", "100px")
+		.attr("dx", "20px")
+		.attr("font-size", "30px")
+		.attr("font-weight", "100px")
+	
+	const cldCvrSelector = hourlyDropdown.append("text")
+		.attr("id", "cldCvrSelector")
+		.text("Cloud Cover")
+		.attr("dy", "150px")
+		.attr("dx", "20px")
+		.attr("font-size", "30px")
+		.attr("font-weight", "100px")
+
+	const relHumSelector = hourlyDropdown.append("text")
+		.attr("id", "relHumSelector")
+		.text("Relative Humidity")
+		.attr("dy", "200px")
+		.attr("dx", "20px")
+		.attr("font-size", "30px")
+		.attr("font-weight", "100px")
+
+	const tempSelector = hourlyDropdown.append("text")
+		.attr("id", "tempSelector")
+		.text("Temperature")
+		.attr("dy", "250px")
+		.attr("dx", "20px")
+		.attr("font-size", "30px")
+		.attr("font-weight", "100px")
+	
+	// 6.4: On click, show dropdown menu
+	currentDisplay.on("click", function(){showMenu()})
+
+	function showMenu() {d3.timeout(function() {
+		hourlyDropdown.transition()
+			.duration(250)
+			.attrTween("width", menuOpenTween());
+	}) }
+
+	function menuOpenTween(){
+		return function(d) {
+			const menuHeightInterpolate = d3.interpolateString(hourlyDropdown.attr("height"), "300")
+			const menuWidthInterpolate = d3.interpolateString(hourlyDropdown.attr("width"), "400")
+			return function(t) {
+				hourlyDropdown.attr("height", menuHeightInterpolate(t))
+				hourlyDropdown.attr("width", menuWidthInterpolate(t))
+				return hourlyDropdown.attr("width")
+			}
+		}
+	}
+
+	function hideMenu() {d3.timeout(function() {
+		hourlyDropdown.transition()
+			.duration(250)
+			.attrTween("width", menuCloseTween());
+	}) }
+
+	function menuCloseTween(){
+		return function(d) {
+			const menuHeightInterpolate = d3.interpolateString(hourlyDropdown.attr("height"), "0")
+			const menuWidthInterpolate = d3.interpolateString(hourlyDropdown.attr("width"), "0")
+			return function(t) {
+				hourlyDropdown.attr("height", menuHeightInterpolate(t))
+				hourlyDropdown.attr("width", menuWidthInterpolate(t))
+				return hourlyDropdown.attr("width")
+			}
+		}
+	}
+
+	// 6.5: PoPs Display
+	PoPsSelector.on("click", function(){popsbars()})
+
+	function popsbars() {d3.timeout(function () {
+		barsCont.selectAll("rect").remove()
+		bars.join("rect")
+			.attr("id", (d) => "bar" + d.pdNum)
+			.attr("x", (d) => x(d.stTime))
+			.attr("y", (d) => y(d.PoPs))
+			.attr("height", (d) => y(0) - y(d.PoPs))
+			.attr("width", "40")
+			.attr("transform", "translate(0,0)")
+			.attr("fill", (d) => d3.interpolateYlGn(d.PoPs/100))
+			.attr("stroke", "black")
+			.attr("stroke-width", "3px")
+			.attr("opacity", "100%")
+			.on("mouseenter", function(d) { 
+				barHover(d.target)})
+			.on("mouseleave", function(d) { 
+				barLeave(d.target)})
+		currentDisplay.text("Chance of Precipitation")
+		hideMenu()
+		
+	})}
+
+	// 6.6: Wind Speed Display
+	wdSpdSelector.on("click", function(){wdspdbars()})
+
+	function wdspdbars() {d3.timeout(function () {
+		barsCont.selectAll("rect").remove()
+		bars.join("rect")
+			.attr("id", (d) => "bar" + d.pdNum + "gust")
+			.attr("x", (d) => x(d.stTime))
+			.attr("y", (d) => y(d.wdGst))
+			.attr("height", (d) => y(0) - y(d.wdGst))
+			.attr("width", "40")
+			.attr("transform", "translate(0,0)")
+			.attr("fill", (d) => d3.interpolateBuPu(d.wdGst/50 + 0.1))
+			.attr("stroke", "black")
+			.attr("stroke-width", "3px")
+			.attr("opacity", "50%")
+		bars.join("rect")
+			.attr("id", (d) => "bar" + d.pdNum)
+			.attr("x", (d) => x(d.stTime))
+			.attr("y", (d) => y(d.wdSpd))
+			.attr("height", (d) => y(0) - y(d.wdSpd))
+			.attr("width", "40")
+			.attr("transform", "translate(0,0)")
+			.attr("fill", (d) => d3.interpolateBuPu(d.wdSpd/50 + 0.1))
+			.attr("stroke", "black")
+			.attr("stroke-width", "3px")
+			.attr("opacity", "100%")
+			.on("mouseenter", function(d) { 
+				barHover(d.target)})
+			.on("mouseleave", function(d) { 
+				barLeave(d.target)})
+		currentDisplay.text("Wind Speed")
+		hideMenu()
+	
+	})}
+
+	// 6.7: Cloud Cover Display
+	cldCvrSelector.on("click", function(){cldcvrbars()})
+
+	function cldcvrbars() {d3.timeout(function () {
+		barsCont.selectAll("rect").remove()
+		bars.join("rect")
+			.attr("id", (d) => "bar" + d.pdNum)
+			.attr("x", (d) => x(d.stTime))
+			.attr("y", (d) => y(d.cldCvr))
+			.attr("height", (d) => y(0) - y(d.cldCvr))
+			.attr("width", "40")
+			.attr("transform", "translate(0,0)")
+			.attr("fill", (d) => d3.interpolatePuBu(1-d.cldCvr/100))
+			.attr("stroke", "black")
+			.attr("stroke-width", "3px")
+			.attr("opacity", "100%")
+			.on("mouseenter", function(d) { 
+				barHover(d.target)})
+			.on("mouseleave", function(d) { 
+				barLeave(d.target)})
+		currentDisplay.text("Cloud Cover")
+		hideMenu()
+
+	})}
+
+	// 6.8: Relative Humidity Display
+	relHumSelector.on("click", function(){relhumbars()})
+
+	function relhumbars() {d3.timeout(function () {
+		barsCont.selectAll("rect").remove()
+		bars.join("rect")
+			.attr("id", (d) => "bar" + d.pdNum)
+			.attr("x", (d) => x(d.stTime))
+			.attr("y", (d) => y(d.relHum))
+			.attr("height", (d) => y(0) - y(d.relHum))
+			.attr("width", "40")
+			.attr("transform", "translate(0,0)")
+			.attr("fill", (d) => d3.interpolateBrBG(d.relHum/100 - 0.1))
+			.attr("stroke", "black")
+			.attr("stroke-width", "3px")
+			.attr("opacity", "100%")
+			.on("mouseenter", function(d) { 
+				barHover(d.target)})
+			.on("mouseleave", function(d) { 
+				barLeave(d.target)})
+		currentDisplay.text("Relative Humidity")
+		hideMenu()
+
+	})}
+
+	// 6.9: Temperature Display
+	tempSelector.on("click", function(){tempbars()})
+
+	function tempbars() {d3.timeout(function () {
+		barsCont.selectAll("rect").remove()
+		bars.join("rect")
+			.attr("id", (d) => "bar" + d.pdNum)
+			.attr("x", (d) => x(d.stTime))
+			.attr("y", (d) => y(d.temp))
+			.attr("height", (d) => y(0) - y(d.temp))
+			.attr("width", "40")
+			.attr("transform", "translate(0,0)")
+			.attr("fill", (d) => cFormula(1.1 - d.temp/100))
+			.attr("stroke", "black")
+			.attr("stroke-width", "3px")
+			.attr("opacity", "100%")
+			.on("mouseenter", function(d) { 
+				barHover(d.target)})
+			.on("mouseleave", function(d) { 
+				barLeave(d.target)})
+		currentDisplay.text("Temperature")
+		hideMenu()
+	})};
+
+
+// Part Final: Append the master SVG.
+container.append(svg.node());
+</script>
+
+<script src="/static/clock.js"></script>
+

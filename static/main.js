@@ -136,7 +136,7 @@ function updateClock() {
                                         day: "2-digit", });
     const local = now.toLocaleDateString([], { 
                                         hour: "2-digit", 
-                                        minute: "2-digit" }).slice(11,)
+                                        minute: "2-digit" }).slice(10,)
     document.getElementById("clock").textContent = `${day} / ${local} EDT / ${utc} Z `;
 }
 
@@ -177,7 +177,8 @@ async function updateForecasts() {
         // --- 12-hour strip (left column) ---
         const shortEl = document.getElementById("forecast-short-content");
         shortEl.innerHTML = "";
-        for (const period of data.hourly) {
+        const hourly_periods = data.hourly.slice(0, 12);
+        for (const period of hourly_periods) {
             const time = new Date(period.startTime)
                 .toLocaleTimeString([], { hour: "numeric" });
             const pop  = period.probabilityOfPrecipitation?.value;
@@ -463,8 +464,6 @@ function togglePause() {
 // ---------------------------------------------------------------
 
 document.addEventListener("DOMContentLoaded", async () => {
-    // Set location name in header
-    document.getElementById("location-name").textContent = LOCATION_NAME;
 
     // Clock — update every second
     updateClock();

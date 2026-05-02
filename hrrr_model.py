@@ -97,7 +97,7 @@ def generate_hrrr(i, data):
         height_px = round(height_in * dpi / 2) * 2
 
         fig = plt.figure(figsize=[width_px/dpi,height_px/dpi], dpi=dpi)
-        fig.set_facecolor("#f2f0eb")
+        fig.set_facecolor("#f0e6da")
 
         axes = fig.subplots(2, 2, subplot_kw={"projection": pc}, gridspec_kw={"wspace": -0.1, "hspace":0.4})
         for j in range(2):

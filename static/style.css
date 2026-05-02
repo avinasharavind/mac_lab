@@ -6,12 +6,12 @@
 }
 
 :root {
-    --bg:          #f2f0eb;       /* warm off-white */
-    --bg-panel:    #e8e5de;       /* slightly darker panel background */
+    --bg:          #f0e6da;       /* warm off-white */
+    --bg-panel:    #e8ded2;       /* slightly darker panel background */
     --border:      #704242;       /* subtle borders */
     --text-primary:#2a2724;       /* near-black, warm tone */
     --text-secondary: #6b6560;    /* muted label text */
-    --text-header: #f0e7e6;
+    --text-header: #f0e6da;
     --bg-header: #832828;
     --accent:      #148a5f;       /* muted sage green — tweak to taste */
     --light:        #a7a7a7;
@@ -37,8 +37,8 @@ body {
 /* --- Top bar --- */
 #topbar {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: center;
+    grid-template-columns: 1fr 1fr 3fr;
+    align-items: baseline;
     padding: 0.4rem 1.2rem;
     width: 100%;
     background: var(--bg-header);
@@ -48,16 +48,24 @@ body {
     flex-shrink: 0;
 }
 
-#topbar #location-name {
+#topbar #header {
     font-weight: 700;
-    font-size: 2.5rem;
+    font-size: 40px;
+    color: var(--text-header);
+    justify-self: left;
+}
+
+#topbar #page {
+    font-weight: 300;
+    font-size: 28px;
+    font-style: italic;
     color: var(--text-header);
     justify-self: left;
 }
 
 #topbar #clock {
-    font-weight: 400;
-    font-size: 1.5rem;
+    font-weight: 300;
+    font-size: 28px;
     color: var(--text-header);
     justify-self: end;
 }

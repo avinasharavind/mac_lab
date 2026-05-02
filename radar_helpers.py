@@ -115,7 +115,7 @@ def plot_frame(radar_frame, png_path):
     cb.ax.tick_params(color="#2a2724")
     cb.ax.set_xlabel("Reflectivity (dBZ)", color="#2a2724", size=21)
 
-    fig.patch.set_facecolor("#f2f0eb")
+    fig.patch.set_facecolor("#f0e6da")
 
     ax.set_title(f"{data.time.values.astype(str)[0:10]} {data.time.values.astype(str)[11:16]}Z / Upstate NY", size=21)
 
